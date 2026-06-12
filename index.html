@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- SEO -->
+  <title>EpicenterLive — Live Worldwide Earthquake Monitor</title>
+  <meta name="description" content="Track earthquakes in real time worldwide. Live USGS data, interactive map, magnitude charts, and instant browser alerts for major seismic events." />
+  <meta name="keywords" content="earthquake monitor, live earthquakes, seismic activity, USGS earthquake data, earthquake map, earthquake tracker, real time earthquakes" />
+  <meta name="author" content="EpicenterLive" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://epicenterlive.com/" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="EpicenterLive — Live Worldwide Earthquake Monitor" />
+  <meta property="og:description" content="Track earthquakes in real time worldwide. Live USGS data, interactive map, and instant alerts." />
+  <meta property="og:image" content="https://epicenterlive.com/og-image.png" />
+  <meta property="og:url" content="https://epicenterlive.com/" />
+  <meta property="og:site_name" content="EpicenterLive" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="EpicenterLive — Live Worldwide Earthquake Monitor" />
+  <meta name="twitter:description" content="Track earthquakes in real time worldwide. Live USGS data, interactive map, and instant alerts." />
+  <meta name="twitter:image" content="https://epicenterlive.com/og-image.png" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f1117" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EpicenterLive" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "EpicenterLive",
+    "url": "https://epicenterlive.com/",
+    "description": "Real-time worldwide earthquake monitoring using USGS data.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark">
+
+  <!-- Live Ticker -->
+  <div id="ticker-bar">
+    <span class="ticker-label">⚡ LIVE</span>
+    <div class="ticker-track">
+      <div class="ticker-content" id="ticker-content" data-i18n="tickerLoading">Loading latest seismic data…</div>
+    </div>
+    <button id="btn-notify" data-i18n-title="notifyTitle" title="Enable browser notifications" aria-label="Enable notifications">🔔</button>
+  </div>
+
+  <!-- Header -->
+  <header id="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+            <!-- Outer pulse rings -->
+            <circle cx="22" cy="22" r="20" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 3" opacity="0.35"/>
+            <circle cx="22" cy="22" r="14" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.55"/>
+            <!-- Core epicenter dot -->
+            <circle cx="22" cy="22" r="4" fill="var(--accent)" opacity="0.95"/>
+            <!-- Crosshair lines -->
+            <line x1="22" y1="4" x2="22" y2="12" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="22" y1="32" x2="22" y2="40" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="4" y1="22" x2="12" y2="22" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="32" y1="22" x2="40" y2="22" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+            <!-- Seismic wave arc -->
+            <path d="M 10 28 Q 13 22 16 26 Q 19 30 22 22 Q 25 14 28 18 Q 31 22 34 22" stroke="var(--accent)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-name" style="font-size:1.15rem;font-weight:700;letter-spacing:-0.5px;">Epicenter<span style="color:var(--accent)">Live</span></span>
+          <span class="brand-tagline" data-i18n="brandTagline">Live Earthquake Monitor</span>
+        </div>
+      </div>
+
+      <nav class="header-nav">
+        <a href="#map-section" class="nav-link" data-i18n="navMap">Map</a>
+        <a href="#stats-section" class="nav-link" data-i18n="navStats">Stats</a>
+        <a href="#list-section" class="nav-link" data-i18n="navList">List</a>
+        <a href="#charts-section" class="nav-link" data-i18n="navCharts">Charts</a>
+      </nav>
+
+      <div class="header-controls">
+        <div class="refresh-status">
+          <span class="pulse-dot" id="pulse-dot"></span>
+          <span id="refresh-countdown" data-i18n="updating">Updating…</span>
+        </div>
+        <!-- Multi-source indicator -->
+        <span id="source-indicator" class="source-indicator loading">⟳ Yükleniyor…</span>
+
+        <!-- Language Selector -->
+        <div class="lang-selector" id="lang-selector">
+          <button class="lang-btn" id="lang-btn" aria-label="Select language">
+            <span id="lang-flag">🌐</span>
+            <span id="lang-code">EN</span>
+            <span class="lang-arrow">▾</span>
+          </button>
+          <div class="lang-dropdown" id="lang-dropdown">
+            <div class="lang-search-wrap">
+              <input type="search" id="lang-search" placeholder="Search…" autocomplete="off" />
+            </div>
+            <div class="lang-list" id="lang-list"></div>
+          </div>
+        </div>
+
+        <button id="btn-dark-toggle" class="icon-btn" data-i18n-title="toggleTheme" title="Toggle dark/light mode" aria-label="Toggle color mode">
+          <span id="dark-icon">☀️</span>
+        </button>
+        <button id="btn-install" class="install-btn hidden" data-i18n="installApp" title="Install app">Install App</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- AdSense Header Banner -->
+  <div class="ad-slot ad-header" aria-label="Advertisement">
+    <span class="ad-label" data-i18n="advertisement">Advertisement</span>
+  </div>
+
+  <!-- Data Sources Panel -->
+  <div class="container sources-bar">
+    <div class="sources-bar-inner">
+      <button class="sources-toggle-btn" id="sources-toggle-btn" aria-expanded="false" aria-controls="sources-panel-wrap">
+        <span>🌐 Veri Kaynakları</span>
+        <span id="source-indicator-inline" class="source-indicator-inline ok">USGS · EMSC · GeoNet · INGV</span>
+        <span class="sources-arrow">▾</span>
+      </button>
+      <div id="sources-panel-wrap" class="sources-panel-wrap hidden">
+        <div id="source-panel" class="source-panel">
+          <!-- Rendered by JS -->
+          <div class="source-row"><span class="source-dot">⚪</span><span class="source-name">Kaynaklar yükleniyor…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- Hero Stats -->
+    <section id="stats-section" class="container stats-grid">
+      <div class="stat-card" id="stat-total">
+        <div class="stat-value" id="val-total">—</div>
+        <div class="stat-label" data-i18n="stat24h">Earthquakes (24h)</div>
+      </div>
+      <div class="stat-card highlight" id="stat-today">
+        <div class="stat-value" id="val-today">—</div>
+        <div class="stat-label" data-i18n="statToday">Today</div>
+      </div>
+      <div class="stat-card" id="stat-largest">
+        <div class="stat-value" id="val-largest">—</div>
+        <div class="stat-label" data-i18n="statLargest">Largest Today</div>
+      </div>
+      <div class="stat-card" id="stat-major">
+        <div class="stat-value" id="val-major">—</div>
+        <div class="stat-label" data-i18n="statMajor">M4.5+ (7 days)</div>
+      </div>
+      <div class="stat-card" id="stat-region">
+        <div class="stat-value" id="val-region">—</div>
+        <div class="stat-label" data-i18n="statRegion">Most Active Region</div>
+      </div>
+    </section>
+
+    <!-- Map -->
+    <section id="map-section" class="container map-section">
+      <div class="section-header">
+        <h2 data-i18n="mapTitle">Live Seismic Map</h2>
+        <div class="map-legend">
+          <span class="legend-item"><span class="dot mag-minor"></span>M&lt;3</span>
+          <span class="legend-item"><span class="dot mag-light"></span>M3–4.4</span>
+          <span class="legend-item"><span class="dot mag-moderate"></span>M4.5–5.9</span>
+          <span class="legend-item"><span class="dot mag-strong"></span>M6–6.9</span>
+          <span class="legend-item"><span class="dot mag-major"></span>M7+</span>
+        </div>
+      </div>
+      <div id="map"></div>
+      <div class="ad-slot ad-map-overlay" aria-label="Advertisement">
+        <span class="ad-label" data-i18n="ad">Ad</span>
+      </div>
+    </section>
+
+    <!-- Filters + List -->
+    <section id="list-section" class="container list-section">
+      <div class="list-sidebar">
+        <div class="filter-panel">
+          <h3 data-i18n="filters">Filters</h3>
+
+          <label for="filter-period" data-i18n="timePeriod">Time Period</label>
+          <select id="filter-period">
+            <option value="hour" data-i18n="pastHour">Past Hour</option>
+            <option value="day" selected data-i18n="past24h">Past 24 Hours</option>
+            <option value="week" data-i18n="past7d">Past 7 Days</option>
+            <option value="month" data-i18n="past30d">Past 30 Days</option>
+          </select>
+
+          <label for="filter-mag" data-i18n="minMag">Min. Magnitude</label>
+          <div class="range-row">
+            <input type="range" id="filter-mag" min="0" max="9" step="0.5" value="0" />
+            <span id="mag-display">0.0</span>
+          </div>
+
+          <label for="filter-search" data-i18n="searchLocation">Search Location</label>
+          <input type="search" id="filter-search" data-i18n-placeholder="searchPlaceholder" placeholder="e.g. Japan, California…" autocomplete="off" />
+
+          <div class="filter-actions">
+            <button id="btn-apply-filters" class="btn-primary" data-i18n="apply">Apply</button>
+            <button id="btn-reset-filters" class="btn-ghost" data-i18n="reset">Reset</button>
+          </div>
+        </div>
+
+        <div class="ad-slot ad-sidebar" aria-label="Advertisement">
+          <span class="ad-label" data-i18n="advertisement">Advertisement</span>
+        </div>
+      </div>
+
+      <div class="list-main">
+        <div class="list-header">
+          <h2><span data-i18n="eqFeed">Earthquake Feed</span> <span id="list-count" class="count-badge">0</span></h2>
+          <div class="sort-row">
+            <label for="sort-by" data-i18n="sort">Sort:</label>
+            <select id="sort-by">
+              <option value="time" data-i18n="newestFirst">Newest First</option>
+              <option value="mag" data-i18n="largestFirst">Largest First</option>
+            </select>
+          </div>
+        </div>
+        <div id="eq-list" role="list" aria-label="Earthquake list">
+          <div class="list-loading">
+            <div class="spinner"></div>
+            <p data-i18n="fetching">Fetching seismic data…</p>
+          </div>
+        </div>
+        <div id="list-pagination" class="pagination"></div>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section id="charts-section" class="container charts-section">
+      <h2 data-i18n="seismicAnalysis">Seismic Analysis</h2>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 data-i18n="chartMag">Magnitude Distribution</h3>
+          <canvas id="chart-mag"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3 data-i18n="chartTime">Activity Over Time (24h)</h3>
+          <canvas id="chart-time"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3 data-i18n="chartRegions">Top Active Regions</h3>
+          <canvas id="chart-regions"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3 data-i18n="chartDepth">Depth Distribution</h3>
+          <canvas id="chart-depth"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- AdSense In-content -->
+    <div class="container">
+      <div class="ad-slot ad-incontent" aria-label="Advertisement">
+        <span class="ad-label" data-i18n="advertisement">Advertisement</span>
+      </div>
+    </div>
+
+    <!-- Major Earthquakes -->
+    <section class="container major-section">
+      <h2><span data-i18n="majorTitle">Recent Major Earthquakes</span> <span class="sub" data-i18n="majorSub">(M6.0+, past 30 days)</span></h2>
+      <div id="major-list" class="major-grid">
+        <div class="list-loading"><div class="spinner"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="ad-slot ad-footer" aria-label="Advertisement">
+      <span class="ad-label" data-i18n="advertisement">Advertisement</span>
+    </div>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>Epicenter<span style="color:var(--accent)">Live</span></strong>
+        <p data-i18n="footerDesc">Real-time earthquake data powered by <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener">USGS</a>. Updates every 30 seconds.</p>
+      </div>
+      <div class="footer-links">
+        <a href="sitemap.xml" target="_blank">Sitemap</a>
+        <a href="robots.txt" target="_blank">Robots.txt</a>
+        <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" target="_blank" rel="noopener" data-i18n="dataSource">Data Source</a>
+      </div>
+      <p class="footer-copy">© <span id="year"></span> EpicenterLive. <span data-i18n="footerCopy">Data from USGS public feeds.</span></p>
+    </div>
+  </footer>
+
+  <!-- Earthquake Detail Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <button class="modal-close" id="modal-close" data-i18n-aria="close" aria-label="Close">✕</button>
+      <div class="modal-mag-badge" id="modal-mag-badge"></div>
+      <h2 id="modal-title" data-i18n="eqDetails">Earthquake Details</h2>
+      <div class="modal-body" id="modal-body"></div>
+      <a id="modal-usgs-link" href="#" target="_blank" rel="noopener" class="btn-primary modal-usgs" data-i18n="viewUSGS">View on USGS ↗</a>
+    </div>
+  </div>
+
+  <!-- Recent Earthquakes Section -->
+    <section id="recent-section" class="container recent-section">
+      <div class="section-header recent-header">
+        <h2><span data-i18n="recentTitle">Son Depremler</span> <span id="recent-count" class="count-badge">0</span></h2>
+        <div class="recent-controls">
+          <div class="auto-refresh-control">
+            <label class="toggle-label">
+              <input type="checkbox" id="auto-refresh-toggle" checked />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="auto-refresh-label" data-i18n="autoRefresh">Otomatik Yenile</span>
+          </div>
+          <div class="refresh-countdown-badge">
+            <span class="pulse-dot-sm" id="recent-pulse"></span>
+            <span id="recent-countdown">30s</span>
+          </div>
+          <button id="btn-manual-refresh" class="btn-refresh" title="Şimdi Yenile">🔄</button>
+          <select id="recent-sort" class="recent-sort-select">
+            <option value="time" data-i18n="newestFirst">En Yeni Önce</option>
+            <option value="mag" data-i18n="largestFirst">En Büyük Önce</option>
+            <option value="time-asc">En Eski Önce</option>
+          </select>
+        </div>
+      </div>
+      <div id="recent-consistency-bar" class="consistency-bar hidden">
+        <span class="consistency-icon">🔍</span>
+        <span id="consistency-message">Veri tutarlılığı kontrol ediliyor…</span>
+      </div>
+      <div id="recent-list" class="recent-grid">
+        <div class="list-loading"><div class="spinner"></div><p data-i18n="fetching">Sismik veriler alınıyor…</p></div>
+      </div>
+    </section>
+
+  <script src="script.js"></script>
+  <!-- i18n: multi-language + SEO -->
+  <script src="i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof i18n !== 'undefined') i18n.init();
+      // Sources panel toggle
+      const toggleBtn = document.getElementById('sources-toggle-btn');
+      const wrap = document.getElementById('sources-panel-wrap');
+      if (toggleBtn && wrap) {
+        toggleBtn.addEventListener('click', () => {
+          const open = !wrap.classList.contains('hidden');
+          wrap.classList.toggle('hidden', open);
+          toggleBtn.setAttribute('aria-expanded', String(!open));
+          toggleBtn.querySelector('.sources-arrow').textContent = open ? '▾' : '▴';
+        });
+      }
+    });
+  </script>
+
+  <!-- Error Banner -->
+  <div id="error-banner" class="error-banner hidden" role="alert" aria-live="assertive">
+    <span class="error-icon">⚠️</span>
+    <span id="error-message">Veri alınamadı. İnternet bağlantınızı kontrol edin.</span>
+    <button id="error-retry" class="error-retry-btn">🔄 Tekrar Dene</button>
+    <button id="error-dismiss" class="error-dismiss-btn">✕</button>
+  </div>
+</body>
+</html>
