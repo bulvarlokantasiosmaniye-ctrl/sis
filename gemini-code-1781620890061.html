@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr" id="html-root">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1692524471491556" crossorigin="anonymous"></script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <title>Earthquake Tracker - Live Earthquake Map & Earthquakes Today | EpicenterLive</title>
+  <meta name="description" content="Live earthquake tracker with a real-time global earthquake map. See earthquakes today, recent earthquake activity, magnitudes near you, and get instant earthquake alerts worldwide." />
+  <meta name="keywords" content="earthquakes today, latest earthquakes, live earthquake map, earthquake tracker, earthquake near me, recent earthquakes, earthquake alerts, earthquake information, earthquake updates, global earthquake map, earthquake monitor, world earthquake tracker, earthquake activity today, deprem son dakika, anlık deprem" />
+  <meta name="author" content="EpicenterLive" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://epicenterlive.com.tr/" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 44 44' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='44' height='44' rx='10' fill='%230f1117'/%3E%3Ccircle cx='22' cy='22' r='19' stroke='%23f59e0b' stroke-width='1' stroke-dasharray='4 3' opacity='0.4'/%3E%3Ccircle cx='22' cy='22' r='13' stroke='%23f59e0b' stroke-width='1.2' stroke-dasharray='3 2' opacity='0.6'/%3E%3Ccircle cx='22' cy='22' r='4.5' fill='%23f59e0b'/%3E%3Cpath d='M 6 32 L 10 32 L 12 25 L 15 37 L 18 29 L 20 32 L 24 21 L 27 35 L 30 29 L 33 32 L 38 32' stroke='%23f59e0b' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg viewBox='0 0 180 180' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='180' height='180' rx='38' fill='%230f1117'/%3E%3Ccircle cx='90' cy='90' r='78' stroke='%23f59e0b' stroke-width='3' stroke-dasharray='12 8' opacity='0.4'/%3E%3Ccircle cx='90' cy='90' r='54' stroke='%23f59e0b' stroke-width='4' stroke-dasharray='8 6' opacity='0.6'/%3E%3Ccircle cx='90' cy='90' r='18' fill='%23f59e0b'/%3E%3Cpath d='M 22 128 L 38 128 L 46 100 L 60 148 L 74 116 L 82 128 L 98 84 L 112 140 L 124 116 L 136 128 L 158 128' stroke='%23f59e0b' stroke-width='7' fill='none' stroke-linecap='round' stroke-linejoin='round' opacity='0.9'/%3E%3C/svg%3E" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Earthquake Tracker - Live Earthquake Map | EpicenterLive" />
+  <meta property="og:description" content="Live earthquake tracker with a real-time global earthquake map." />
+  <meta property="og:image" content="https://epicenterlive.com.tr/og-image.png" />
+  <meta property="og:url" content="https://epicenterlive.com.tr/" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Variables & Design System ── */
+    :root {
+      --bg: #0f1117;
+      --bg2: #161920;
+      --bg3: #1e2130;
+      --surface: #252a3a;
+      --surface2: #2e3447;
+      --border: #333a52;
+      --text: #e8ecf4;
+      --text2: #9aa3bc;
+      --text3: #5a647e;
+      --accent: #f59e0b;
+      --accent2: #fbbf24;
+      --accent-glow: rgba(245,158,11,0.18);
+      --red: #ef4444;
+      --orange: #f97316;
+      --yellow: #eab308;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.45);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-mono: 'Space Mono', 'Courier New', monospace;
+      --transition: 0.2s ease;
+      --header-h: 60px;
+      --ticker-h: 36px;
+    }
+
+    .light {
+      --bg: #f4f6fb;
+      --bg2: #ebeef7;
+      --bg3: #e2e6f0;
+      --surface: #ffffff;
+      --surface2: #f0f2fa;
+      --border: #d1d8ee;
+      --text: #0f1117;
+      --text2: #4a5568;
+      --text3: #9aa3bc;
+      --accent: #d97706;
+      --accent2: #f59e0b;
+      --accent-glow: rgba(217,119,6,0.12);
+      --shadow: 0 4px 24px rgba(0,0,0,0.10);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font-family: var(--font-sans); cursor: pointer; border: none; background: none; }
+
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+    .hidden { display: none !important; }
+
+    /* ── Ticker ── */
+    #ticker-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--ticker-h);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; padding: 0 16px; z-index: 1000; overflow: hidden;
+    }
+    .ticker-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent);
+      white-space: nowrap; background: var(--accent-glow); padding: 2px 8px; border-radius: 4px;
+    }
+    .ticker-track { flex: 1; overflow: hidden; height: 100%; display: flex; align-items: center; }
+    .ticker-content { display: flex; font-size: 13px; color: var(--text2); animation: ticker-scroll 30s linear infinite; }
+    @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ── Header ── */
+    #site-header {
+      position: fixed; top: var(--ticker-h); left: 0; right: 0; height: var(--header-h);
+      background: var(--bg); border-bottom: 1px solid var(--border); z-index: 999; backdrop-filter: blur(12px);
+    }
+    .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-name { font-size: 18px; font-weight: 700; color: var(--text); }
+    .header-nav { display: flex; gap: 10px; }
+    .nav-link { font-size: 13px; font-weight: 500; color: var(--text2); padding: 6px 12px; border-radius: 6px; }
+    .nav-link:hover { background: var(--surface); color: var(--text); }
+
+    main { padding-top: calc(var(--ticker-h) + var(--header-h) + 24px); padding-bottom: 40px; }
+
+    /* ── Stats Grid ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; text-align: center; }
+    .stat-value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--text3); text-transform: uppercase; }
+
+    /* ── Map ── */
+    #map { height: 500px; border-radius: var(--radius-lg); border: 1px solid var(--border); z-index: 1; margin-bottom: 24px; }
+    .dark .leaflet-tile { filter: brightness(0.65) saturate(0.6); }
+
+    /* ── Filters & Layout ── */
+    .list-section { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+    @media (max-width: 768px) { .
