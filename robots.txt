@@ -1,7 +1,0 @@
-# robots.txt for https://epicenterlive.com.tr/
-# EpicenterLive — Live Earthquake Tracker & Global Earthquake Map
-
-User-agent: *
-Allow: /
-
-Sitemap: https://epicenterlive.com.tr/sitemap.xml
