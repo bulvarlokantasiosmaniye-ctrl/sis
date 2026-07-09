@@ -242,7 +242,6 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 }
 .provider-tag.afad{ background:rgba(63,127,209,.14); color:var(--accent-info); }
 .provider-tag.kandilli{ background:rgba(224,71,63,.14); color:var(--accent-brand); }
-.provider-tag.usgs{ background:rgba(31,163,74,.14); color:var(--accent-safe); }
 
 .empty-state, .error-state{
   text-align:center; padding:50px 20px; color:var(--text-muted);
@@ -529,64 +528,42 @@ footer a:hover{ color:var(--text-primary); }
    Bkz. hakkinda.html için atıf ve kullanım koşulları
    ========================================================= */
 
-// Veri kaynağı: USGS (ABD Jeoloji Araştırmaları) resmi, ücretsiz, CORS destekli deprem API'si.
-// Not: Önceki kaynak (orhanaydogdu.com.tr) sitemizi 403 ile engellediği için USGS'e geçildi.
-const USGS_BASE = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
-// Türkiye ve yakın çevresini kapsayan coğrafi kutu
-const TR_BBOX = { minlatitude: 35.5, maxlatitude: 42.5, minlongitude: 25.5, maxlongitude: 45.0 };
+const API_BASE = 'https://api.orhanaydogdu.com.tr/deprem';
 
-function istanbulDateTimeString(utcMs) {
-  const d = new Date(utcMs + 3 * 60 * 60 * 1000); // UTC+3 (Türkiye saati, DST yok)
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
-}
-
-function deriveCityFromPlace(place) {
-  if (!place) return '';
-  let p = place.replace(/^[\d.]+\s*km\s+[NSEW]+\s+of\s+/i, '').trim();
-  return p.split(',')[0].trim();
-}
-
-async function fetchLiveEarthquakes({ provider = 'all', limit = 100, skip = 0 } = {}) {
-  const params = new URLSearchParams({
-    format: 'geojson',
-    minlatitude: String(TR_BBOX.minlatitude),
-    maxlatitude: String(TR_BBOX.maxlatitude),
-    minlongitude: String(TR_BBOX.minlongitude),
-    maxlongitude: String(TR_BBOX.maxlongitude),
-    orderby: 'time',
-    limit: String(Math.min(limit, 200))
-  });
-  const url = `${USGS_BASE}?${params.toString()}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    if (res.status === 429 || res.status === 403) {
-      throw new Error(`API_LIMIT_${res.status}`);
+async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } = {}) {
+  async function fetchOne(prov) {
+    const url = `${API_BASE}/${prov}/live?limit=${limit}&skip=${skip}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      if (res.status === 429 || res.status === 403) {
+        throw new Error(`API_LIMIT_${res.status}`);
+      }
+      throw new Error('HTTP_' + res.status);
     }
-    throw new Error('HTTP_' + res.status);
+    const data = await res.json();
+    if (!data || data.status !== true) throw new Error('API_INVALID_RESPONSE');
+    return data.result || [];
   }
-  const data = await res.json();
-  if (!data || !Array.isArray(data.features)) throw new Error('API_INVALID_RESPONSE');
 
-  return data.features.map(f => {
-    const [lon, lat, depth] = f.geometry?.coordinates || [null, null, null];
-    const place = f.properties?.place || '';
-    return {
-      earthquake_id: f.id,
-      provider: 'usgs',
-      title: place || 'Bilinmeyen Konum',
-      mag: typeof f.properties?.mag === 'number' ? f.properties.mag : 0,
-      depth: typeof depth === 'number' ? depth : 0,
-      geojson: { type: 'Point', coordinates: [lon, lat] },
-      location_properties: { closestCity: { name: deriveCityFromPlace(place) } },
-      date_time: istanbulDateTimeString(f.properties?.time)
-    };
-  });
+  if (provider === 'all') {
+    // Bu API'de AFAD+Kandilli'yi tek istekte birleştiren bir endpoint YOK.
+    // Bu yuzden iki kaynak paralel olarak ayri ayri cekilip birlestirilir.
+    const results = await Promise.allSettled([fetchOne('kandilli'), fetchOne('afad')]);
+    const ok = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+    if (ok.length === 0) {
+      throw results[0].reason;
+    }
+    return ok.flat();
+  }
+
+  return fetchOne(provider);
 }
 
 async function fetchCities() {
-  // USGS kaynağında ayrı bir il listesi endpoint'i yok; il filtresi bu kaynakla devre dışı.
-  return [];
+  const res = await fetch(`${API_BASE}/statics/cities`);
+  if (!res.ok) throw new Error('Şehir listesi alınamadı');
+  const data = await res.json();
+  return data.result || [];
 }
 
 function magClass(mag) {
@@ -752,7 +729,7 @@ async function loadMapData() {
           <div style="margin:4px 0; font-weight:700;">${escapeHtml(titleCaseLocation(q.title))}</div>
           <div style="font-size:12px; color:#6b7680;">
             ${q.depth?.toFixed(1) ?? '–'} km derinlik ${city ? '· ' + escapeHtml(city) : ''}<br>
-            ${formatDateTime(q.date_time)} · ${q.provider === 'afad' ? 'AFAD' : (q.provider === 'kandilli' ? 'Kandilli' : 'USGS')}
+            ${formatDateTime(q.date_time)} · ${q.provider === 'afad' ? 'AFAD' : 'Kandilli'}
           </div>
         </div>
       `);
