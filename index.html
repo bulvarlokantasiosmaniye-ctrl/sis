@@ -2,19 +2,33 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+<link rel="manifest" href="site.webmanifest">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Son Depremler – Türkiye Canlı Deprem Takip | AFAD & Kandilli</title>
-<meta name="description" content="Türkiye ve yakın çevresindeki son 500 deprem. Kandilli ve AFAD verileriyle anlık deprem büyüklüğü, derinlik, konum ve harita bilgisi.">
-<meta name="keywords" content="son depremler, deprem, türkiye deprem, kandilli, afad, az önce deprem, deprem haritası, deprem sorgulama">
-<meta name="robots" content="index, follow">
+<title>Son Depremler – Türkiye'de Bugün Deprem Oldu mu? Canlı AFAD & Kandilli</title>
+<meta name="description" content="Türkiye'de az önce ve bugün olan depremler burada: Kandilli Rasathanesi ve AFAD verileriyle canlı, anlık deprem listesi. Büyüklük, derinlik, konum ve deprem haritası tek sayfada.">
+<meta name="keywords" content="son depremler, türkiye son depremler, bugün deprem, az önce deprem, deprem, kandilli, afad, deprem haritası, deprem sorgulama, canlı deprem">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://epicenterlive.com.tr/">
+<link rel="alternate" hreflang="tr" href="https://epicenterlive.com.tr/">
 
 <meta property="og:type" content="website">
 <meta property="og:locale" content="tr_TR">
 <meta property="og:site_name" content="Son Depremler">
-<meta property="og:title" content="Son Depremler – Türkiye Canlı Deprem Takip">
+<meta property="og:url" content="https://epicenterlive.com.tr/">
+<meta property="og:title" content="Son Depremler – Türkiye'de Bugün Deprem Oldu mu? Canlı Takip">
 <meta property="og:description" content="AFAD ve Kandilli Rasathanesi verileriyle Türkiye'deki son depremleri anlık takip edin.">
+<meta property="og:image" content="https://epicenterlive.com.tr/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Son Depremler – Türkiye Canlı Deprem Takip">
+<meta name="twitter:description" content="AFAD ve Kandilli verileriyle Türkiye'deki son depremleri anlık takip edin.">
+<meta name="twitter:image" content="https://epicenterlive.com.tr/og-image.png">
 <meta name="theme-color" content="#e0473f">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -424,7 +438,61 @@ footer a:hover{ color:var(--text-primary); }
   "name": "Son Depremler",
   "url": "https://epicenterlive.com.tr/",
   "inLanguage": "tr-TR",
-  "description": "Türkiye'de son dakika depremler; AFAD ve Kandilli Rasathanesi verileriyle anlık takip."
+  "description": "Türkiye'de son dakika depremler; AFAD ve Kandilli Rasathanesi verileriyle anlık takip.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://epicenterlive.com.tr/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Son Depremler", "item": "https://epicenterlive.com.tr/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Bugün Türkiye'de deprem oldu mu?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bu sayfadaki liste, Kandilli Rasathanesi ve AFAD kaynaklarından yaklaşık her 30 saniyede bir güncellenir; sayfanın en üstünde en son kaydedilen depremi anlık olarak görebilirsiniz."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Deprem büyüklüğü (M) ne anlama gelir?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Büyüklük, depremin kaynağında açığa çıkan enerjiyi ifade eden logaritmik bir ölçektir. Genellikle 3.0 altı depremler hissedilmez veya hafif hissedilir, 5.0 ve üzeri depremler hasara yol açabilir."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "AFAD ve Kandilli verileri neden farklı olabilir?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AFAD ve Kandilli Rasathanesi birbirinden bağımsız ölçüm istasyonu ağlarına sahiptir. Aynı deprem için büyüklük ve derinlik değerleri istasyona göre küçük farklılıklar gösterebilir; her iki kaynak da bu sitede birlikte sunulur."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Deprem sırasında ne yapılmalıyım?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Çök-Kapan-Tutun kuralını uygulayın: sağlam bir masa altına çökün, başınızı ve boynunuzu koruyun, sarsıntı bitene kadar bir yere sıkıca tutunun. Sarsıntı sonrası binayı kontrollü şekilde terk edin ve resmî AFAD duyurularını takip edin."
+      }
+    }
+  ]
 }
 </script>
 </head>
@@ -448,7 +516,7 @@ footer a:hover{ color:var(--text-primary); }
 
   <div class="source-toggle-row">
     <div class="source-toggle-pill">
-      <button class="src-btn" data-provider="afad">AFAD</button>
+      <button class="src-btn active" data-provider="afad">AFAD</button>
       <button class="src-btn active" data-provider="kandilli">Kandilli</button>
     </div>
   </div>
@@ -483,6 +551,28 @@ footer a:hover{ color:var(--text-primary); }
       <a href="http://www.koeri.boun.edu.tr" target="_blank" rel="noopener" style="color:var(--accent-info); font-weight:600;">Kandilli Rasathanesi</a>
       kaynaklarını kontrol edin.
     </p>
+  </section>
+
+  <section class="card" style="margin-bottom:24px;">
+    <h2 class="section-title">Sık Sorulan Sorular</h2>
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <h3 style="font-size:14px; margin:0 0 4px;">Bugün Türkiye'de deprem oldu mu?</h3>
+        <p style="color:var(--text-muted); font-size:13.5px; margin:0;">Bu sayfadaki liste Kandilli Rasathanesi ve AFAD kaynaklarından yaklaşık her 30 saniyede bir otomatik güncellenir; en üstteki kayıt en son gerçekleşen depremi gösterir.</p>
+      </div>
+      <div>
+        <h3 style="font-size:14px; margin:0 0 4px;">Deprem büyüklüğü (M) ne anlama gelir?</h3>
+        <p style="color:var(--text-muted); font-size:13.5px; margin:0;">Büyüklük, depremin kaynağında açığa çıkan enerjiyi ifade eden logaritmik bir ölçektir. 3.0 altı depremler genelde hissedilmez, 5.0 ve üzeri depremler hasara yol açabilir.</p>
+      </div>
+      <div>
+        <h3 style="font-size:14px; margin:0 0 4px;">AFAD ve Kandilli verileri neden farklı olabilir?</h3>
+        <p style="color:var(--text-muted); font-size:13.5px; margin:0;">İki kurum birbirinden bağımsız istasyon ağlarına sahiptir; aynı deprem için büyüklük ve derinlik değerleri istasyona göre küçük farklar gösterebilir. Bu sitede her iki kaynak birlikte, kaynak etiketiyle sunulur.</p>
+      </div>
+      <div>
+        <h3 style="font-size:14px; margin:0 0 4px;">Deprem sırasında ne yapılmalıyım?</h3>
+        <p style="color:var(--text-muted); font-size:13.5px; margin:0;">Çök-Kapan-Tutun kuralını uygulayın: sağlam bir masa altına çökün, başınızı ve boynunuzu koruyun, sarsıntı bitene kadar tutunun. Sonrasında binayı kontrollü terk edin ve resmî AFAD duyurularını takip edin.</p>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -534,9 +624,9 @@ footer a:hover{ color:var(--text-primary); }
     <div class="sheet-field">
       <label for="minMag">Minimum Büyüklük</label>
       <select id="minMag">
-        <option value="0">Tümü</option>
+        <option value="0" selected>Tümü</option>
         <option value="2">2.0+</option>
-        <option value="3" selected>3.0+</option>
+        <option value="3">3.0+</option>
         <option value="4">4.0+</option>
         <option value="5">5.0+</option>
       </select>
@@ -666,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 let allQuakes = [];
 let visibleCount = 20;
-let activeProviders = new Set(['kandilli']);
+let activeProviders = new Set(['afad', 'kandilli']);
 
 async function loadCities() {
   try {
@@ -765,8 +855,9 @@ async function loadData() {
   try {
     const providers = [...activeProviders];
     const results = await Promise.all(providers.map(p => fetchLiveEarthquakes({ provider: p, limit: 100 })));
-    allQuakes = results.flat();
-    allQuakes.sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
+    let merged = results.flat();
+    if (providers.length > 1) merged = dedupeQuakes(merged);
+    allQuakes = merged.sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
     renderStrip(allQuakes);
     renderList();
   } catch (e) {
@@ -796,7 +887,7 @@ document.querySelectorAll('.src-btn').forEach(btn => {
 
 loadCities();
 loadData();
-setInterval(loadData, 60000); // 60 sn'de bir otomatik yenile
+setInterval(loadData, 30000); // 30 sn'de bir otomatik yenile (API önbellek süresiyle uyumlu)
 </script>
 </body>
 </html>

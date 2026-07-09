@@ -2,6 +2,12 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+<link rel="manifest" href="site.webmanifest">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deprem Haritası – Türkiye Canlı Deprem Konumları | Son Depremler</title>
 <meta name="description" content="Türkiye'deki son depremlerin interaktif harita üzerinde konumu. Büyüklüğe göre renklendirilmiş, AFAD ve Kandilli verileriyle güncel deprem haritası.">
@@ -11,6 +17,19 @@
 <meta property="og:title" content="Deprem Haritası | Son Depremler">
 <meta property="og:description" content="Türkiye'deki son depremlerin interaktif harita üzerinde canlı takibi.">
 <meta name="theme-color" content="#e0473f">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Son Depremler">
+<meta property="og:url" content="https://epicenterlive.com.tr/harita.html">
+<meta property="og:title" content="Deprem Haritası – Türkiye'deki Son Depremlerin Canlı Konumu">
+<meta property="og:description" content="Türkiye'deki son depremlerin interaktif harita üzerinde canlı takibi. Büyüklüğe göre renklendirilmiş, AFAD ve Kandilli verileriyle.">
+<meta property="og:image" content="https://epicenterlive.com.tr/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Deprem Haritası – Türkiye'deki Son Depremlerin Canlı Konumu">
+<meta name="twitter:description" content="Türkiye'deki son depremlerin interaktif harita üzerinde canlı takibi. Büyüklüğe göre renklendirilmiş, AFAD ve Kandilli verileriyle.">
+<meta name="twitter:image" content="https://epicenterlive.com.tr/og-image.png">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -412,6 +431,16 @@ footer a:hover{ color:var(--text-primary); }
 }
 
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Son Depremler", "item": "https://epicenterlive.com.tr/" },
+    { "@type": "ListItem", "position": 2, "name": "Harita", "item": "https://epicenterlive.com.tr/harita.html" }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -423,7 +452,7 @@ footer a:hover{ color:var(--text-primary); }
       </svg>
     </div>
     <div>
-      <h1 class="brand-title">SON DEPREMLER</h1>
+      <p class="brand-title">SON DEPREMLER</p>
       <p class="brand-sub">Türkiye ve yakın çevresindeki Kandilli ve AFAD verileriyle son 500 deprem</p>
     </div>
   </div>
@@ -622,7 +651,8 @@ function colorFor(mag) {
 
 async function loadMapData() {
   try {
-    const list = await fetchLiveEarthquakes({ provider: 'all', limit: 100 });
+    let list = await fetchLiveEarthquakes({ provider: 'all', limit: 100 });
+    list = dedupeQuakes(list);
 
     // eski işaretçileri temizle
     map.eachLayer(l => { if (l instanceof L.CircleMarker) map.removeLayer(l); });
