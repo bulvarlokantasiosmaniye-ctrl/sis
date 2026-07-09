@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deprem Haritası – Türkiye Canlı Deprem Konumları | Son Depremler</title>
+<meta name="description" content="Türkiye'deki son depremlerin interaktif harita üzerinde konumu. Büyüklüğe göre renklendirilmiş, AFAD ve Kandilli verileriyle güncel deprem haritası.">
+<meta name="keywords" content="deprem haritası, deprem konum, türkiye deprem haritası, canlı deprem haritası">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ornek-alan-adiniz.com/harita.html">
+<meta property="og:title" content="Deprem Haritası | Son Depremler">
+<meta property="og:description" content="Türkiye'deki son depremlerin interaktif harita üzerinde canlı takibi.">
+<meta name="theme-color" content="#0B0F14">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   SON DEPREMLER TR — Tasarım Sistemi
+   Tema: gece nöbetçi istasyonu / sismograf enstrümanı
+   ========================================================= */
+
+:root{
+  /* --- Renkler --- */
+  --bg:            #0B0F14;
+  --bg-raised:     #10151C;
+  --surface:       #151B23;
+  --surface-hover: #1B222C;
+  --border:        #232B36;
+  --border-soft:   #1B222C;
+
+  --text-primary:  #EDEFF2;
+  --text-muted:    #8D97A5;
+  --text-faint:    #5B6472;
+
+  --accent-brand:  #FF4433;   /* marka / kritik */
+  --accent-warn:   #FFB13B;   /* orta */
+  --accent-safe:   #3ECF8E;   /* düşük */
+  --accent-info:   #4FA3FF;   /* bilgi / afad */
+  --accent-kandilli: #C792FF; /* kandilli */
+
+  --line: #2A3340;
+
+  /* --- Tipografi --- */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px -12px rgba(0,0,0,0.6);
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text-primary);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+a{ color:inherit; text-decoration:none; }
+ul{ margin:0; padding:0; list-style:none; }
+button{ font-family:inherit; }
+
+::selection{ background:var(--accent-brand); color:#fff; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+}
+
+/* focus görünürlüğü */
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible{
+  outline:2px solid var(--accent-info);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+.container{
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 20px;
+}
+
+/* =========================================================
+   ÜST BAR
+   ========================================================= */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(11,15,20,0.86);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.topbar-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px;
+  max-width:1180px; margin:0 auto;
+  gap:16px;
+}
+.brand{ display:flex; align-items:center; gap:10px; }
+.brand-mark{ width:30px; height:30px; flex-shrink:0; }
+.brand-name{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:19px;
+  letter-spacing:-0.01em;
+  color:var(--text-primary);
+}
+.brand-name em{
+  font-style:normal;
+  color:var(--accent-brand);
+}
+.brand-tag{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:10.5px;
+  letter-spacing:0.06em;
+  color:var(--text-faint);
+  text-transform:uppercase;
+  margin-top:1px;
+}
+
+.nav{ display:flex; align-items:center; gap:4px; }
+.nav a{
+  padding:8px 14px;
+  border-radius:8px;
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text-muted);
+  transition:color .15s ease, background .15s ease;
+}
+.nav a:hover{ color:var(--text-primary); background:var(--surface); }
+.nav a.active{ color:var(--text-primary); background:var(--surface); }
+.nav a.active::after{ content:''; }
+
+.nav-toggle{
+  display:none;
+  background:none; border:1px solid var(--border); color:var(--text-primary);
+  width:38px; height:38px; border-radius:8px; cursor:pointer;
+  align-items:center; justify-content:center;
+}
+
+/* Canlı rozet */
+.live-dot{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.05em;
+  color:var(--accent-safe); text-transform:uppercase;
+  padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+  background:var(--surface);
+}
+.live-dot .dot{
+  width:7px; height:7px; border-radius:50%;
+  background:var(--accent-safe);
+  box-shadow:0 0 0 0 rgba(62,207,142,.6);
+  animation:pulse-dot 2s infinite;
+}
+@keyframes pulse-dot{
+  0%{ box-shadow:0 0 0 0 rgba(62,207,142,.55); }
+  70%{ box-shadow:0 0 0 7px rgba(62,207,142,0); }
+  100%{ box-shadow:0 0 0 0 rgba(62,207,142,0); }
+}
+
+/* =========================================================
+   SİSMOGRAM ŞERİDİ (imza öge)
+   ========================================================= */
+.seismo-strip{
+  width:100%;
+  height:56px;
+  background:
+    linear-gradient(180deg, #0D1219 0%, #0A0D12 100%);
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+  position:relative;
+}
+.seismo-strip svg{ display:block; width:100%; height:100%; }
+.seismo-strip .grid-line{ stroke:var(--line); stroke-width:1; }
+.seismo-strip .trace{
+  fill:none;
+  stroke:var(--accent-safe);
+  stroke-width:1.4;
+  filter:drop-shadow(0 0 3px rgba(62,207,142,.35));
+}
+.seismo-strip .trace.alert{ stroke:var(--accent-brand); filter:drop-shadow(0 0 4px rgba(255,68,51,.5)); }
+.seismo-label{
+  position:absolute; left:20px; top:6px;
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em;
+  color:var(--text-faint); text-transform:uppercase;
+}
+
+/* =========================================================
+   HERO / DURUM BLOKLARI
+   ========================================================= */
+.hero{
+  padding:28px 0 22px;
+  display:grid;
+  grid-template-columns:1.5fr 1fr;
+  gap:16px;
+}
+@media (max-width:860px){ .hero{ grid-template-columns:1fr; } }
+
+.hero-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:22px;
+  box-shadow:var(--shadow-card);
+}
+.hero-eyebrow{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
+  color:var(--text-faint); text-transform:uppercase; margin-bottom:12px;
+  display:flex; align-items:center; gap:8px;
+}
+.hero-quake-title{
+  font-family:var(--font-display); font-size:26px; font-weight:700;
+  letter-spacing:-0.01em; margin:0 0 6px;
+}
+.hero-quake-meta{ color:var(--text-muted); font-size:13.5px; }
+.hero-quake-meta strong{ color:var(--text-primary); }
+
+.mag-badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-weight:700;
+  border-radius:10px;
+  flex-shrink:0;
+}
+.mag-badge.safe{ background:rgba(62,207,142,.12); color:var(--accent-safe); border:1px solid rgba(62,207,142,.35); }
+.mag-badge.warn{ background:rgba(255,177,59,.12); color:var(--accent-warn); border:1px solid rgba(255,177,59,.35); }
+.mag-badge.critical{ background:rgba(255,68,51,.14); color:var(--accent-brand); border:1px solid rgba(255,68,51,.4); }
+
+.stat-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+.stat-box{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:16px;
+}
+.stat-box .num{
+  font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--text-primary);
+  display:block;
+}
+.stat-box .lbl{
+  font-size:11.5px; color:var(--text-muted); margin-top:4px; display:block;
+  text-transform:uppercase; letter-spacing:.04em;
+}
+
+/* =========================================================
+   FİLTRE ÇUBUĞU
+   ========================================================= */
+.filters{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  padding:14px 18px;
+  background:var(--bg-raised);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  margin-bottom:18px;
+}
+.filters .field{ display:flex; flex-direction:column; gap:5px; }
+.filters label{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint);
+  font-family:var(--font-mono);
+}
+.filters select, .filters input[type=range]{
+  background:var(--surface); color:var(--text-primary);
+  border:1px solid var(--border); border-radius:8px;
+  padding:8px 10px; font-size:13px; font-family:var(--font-body);
+}
+.filters .source-toggle{ display:flex; gap:6px; }
+.chip{
+  padding:8px 13px; border-radius:999px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-muted); font-size:12.5px; font-weight:600;
+  cursor:pointer; transition:all .15s ease;
+}
+.chip.active{ background:var(--text-primary); color:var(--bg); border-color:var(--text-primary); }
+.chip:hover:not(.active){ border-color:var(--text-muted); color:var(--text-primary); }
+
+.btn-refresh{
+  margin-left:auto;
+  display:flex; align-items:center; gap:7px;
+  background:var(--accent-brand); color:#fff; border:none;
+  padding:9px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;
+  transition:filter .15s ease;
+}
+.btn-refresh:hover{ filter:brightness(1.1); }
+.btn-refresh svg{ width:14px; height:14px; }
+.btn-refresh.spinning svg{ animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* =========================================================
+   DEPREM LİSTESİ
+   ========================================================= */
+.quake-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:40px; }
+.quake-card{
+  display:grid;
+  grid-template-columns:56px 1fr auto;
+  align-items:center;
+  gap:16px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  padding:14px 16px;
+  transition:border-color .15s ease, background .15s ease;
+}
+.quake-card:hover{ border-color:var(--text-faint); background:var(--surface-hover); }
+.quake-card .mag-badge{ width:56px; height:56px; font-size:19px; }
+.quake-title{ font-weight:700; font-size:14.5px; margin:0 0 4px; }
+.quake-sub{
+  display:flex; flex-wrap:wrap; gap:12px;
+  font-size:12px; color:var(--text-muted); font-family:var(--font-mono);
+}
+.quake-sub .provider{
+  padding:1px 7px; border-radius:5px; font-weight:700; font-size:10px; letter-spacing:.03em;
+}
+.provider.afad{ background:rgba(79,163,255,.14); color:var(--accent-info); }
+.provider.kandilli{ background:rgba(199,146,255,.14); color:var(--accent-kandilli); }
+.quake-time{ text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--text-muted); white-space:nowrap; }
+.quake-time .ago{ display:block; color:var(--text-primary); font-weight:700; font-size:13px; }
+
+.empty-state, .error-state{
+  text-align:center; padding:50px 20px; color:var(--text-muted);
+  border:1px dashed var(--border); border-radius:var(--radius-md);
+}
+.error-state{ color:var(--accent-warn); border-color:rgba(255,177,59,.3); }
+
+.skeleton{
+  background:linear-gradient(90deg, var(--surface) 25%, var(--surface-hover) 37%, var(--surface) 63%);
+  background-size:400% 100%;
+  animation:shimmer 1.4s ease infinite;
+  border-radius:var(--radius-md);
+  height:84px;
+}
+@keyframes shimmer{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+
+.load-more{
+  display:block; width:100%; padding:12px; text-align:center;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
+  color:var(--text-muted); font-weight:600; cursor:pointer; font-size:13px;
+}
+.load-more:hover{ color:var(--text-primary); border-color:var(--text-faint); }
+
+/* =========================================================
+   SAYFA BAŞLIKLARI / GENEL BLOKLAR
+   ========================================================= */
+.page-head{ padding:36px 0 8px; }
+.page-head .kicker{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--accent-brand); margin-bottom:8px; display:block;
+}
+.page-head h1{
+  font-family:var(--font-display); font-size:32px; margin:0 0 8px; letter-spacing:-0.01em;
+}
+.page-head p{ color:var(--text-muted); max-width:640px; margin:0; }
+
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:20px; box-shadow:var(--shadow-card);
+}
+.section-title{
+  font-family:var(--font-display); font-size:18px; margin:0 0 14px; font-weight:700;
+}
+
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+@media (max-width:860px){ .grid-2, .grid-3{ grid-template-columns:1fr; } }
+
+/* İstatistik sayfası mini kutular */
+.kpi-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px; }
+@media (max-width:860px){ .kpi-row{ grid-template-columns:1fr 1fr; } }
+.kpi{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px;
+}
+.kpi .num{ font-family:var(--font-mono); font-size:26px; font-weight:700; }
+.kpi .lbl{ font-size:11.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:4px; }
+
+.chart-wrap{ position:relative; height:280px; }
+
+table.city-table{ width:100%; border-collapse:collapse; font-size:13px; }
+table.city-table th{
+  text-align:left; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase;
+  color:var(--text-faint); padding:8px 10px; border-bottom:1px solid var(--border); letter-spacing:.05em;
+}
+table.city-table td{ padding:10px; border-bottom:1px solid var(--border-soft); }
+table.city-table tr:last-child td{ border-bottom:none; }
+table.city-table .bar-bg{ background:var(--bg-raised); border-radius:4px; height:8px; width:100%; overflow:hidden; }
+table.city-table .bar-fg{ background:var(--accent-brand); height:100%; border-radius:4px; }
+
+/* =========================================================
+   HARİTA SAYFASI
+   ========================================================= */
+#map{
+  width:100%; height:70vh; min-height:420px;
+  border-radius:var(--radius-lg); border:1px solid var(--border);
+}
+.leaflet-popup-content-wrapper{
+  background:var(--surface); color:var(--text-primary); border:1px solid var(--border);
+}
+.leaflet-popup-tip{ background:var(--surface); }
+.map-legend{
+  display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--text-muted);
+}
+.map-legend span{ display:inline-flex; align-items:center; gap:6px; }
+.map-legend i{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+footer{
+  border-top:1px solid var(--border);
+  margin-top:60px;
+  padding:32px 0 40px;
+  color:var(--text-faint);
+  font-size:12.5px;
+}
+footer .container{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:flex-start; }
+footer a{ color:var(--text-muted); }
+footer a:hover{ color:var(--text-primary); }
+.footer-links{ display:flex; gap:16px; flex-wrap:wrap; }
+.disclaimer{ max-width:520px; line-height:1.6; }
+
+/* =========================================================
+   MOBİL
+   ========================================================= */
+@media (max-width:760px){
+  .nav{
+    position:fixed; top:64px; left:0; right:0; bottom:0;
+    background:var(--bg); border-top:1px solid var(--border);
+    flex-direction:column; align-items:stretch; padding:12px; gap:4px;
+    transform:translateY(-110%); transition:transform .2s ease; z-index:40;
+  }
+  .nav.open{ transform:translateY(0); }
+  .nav a{ padding:14px; font-size:15px; }
+  .nav-toggle{ display:flex; }
+  .quake-card{ grid-template-columns:44px 1fr; }
+  .quake-card .mag-badge{ width:44px; height:44px; font-size:15px; }
+  .quake-time{ grid-column:1 / -1; text-align:left; margin-top:6px; }
+}
+
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="index.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="15" stroke="#FF4433" stroke-width="2"/>
+        <path d="M4 16 L11 16 L13.5 9 L18 23 L20.5 16 L28 16" stroke="#FF4433" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span>
+        <span class="brand-name">Son <em>Depremler</em></span>
+        <span class="brand-tag">Türkiye Deprem Takip</span>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-label="Menüyü aç">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav">
+      <a href="index.html">Son Depremler</a>
+      <a href="istatistik.html">İstatistik</a>
+      <a href="harita.html">Harita</a>
+      <a href="hakkinda.html">Hakkında</a>
+    </nav>
+    <span class="live-dot"><span class="dot"></span> Canlı</span>
+  </div>
+  <div class="seismo-strip">
+    <span class="seismo-label">Sismogram · anlık şerit</span>
+    <svg id="seismoSvg" viewBox="0 0 1200 56" preserveAspectRatio="none"></svg>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head">
+    <span class="kicker">Harita</span>
+    <h1>Deprem Haritası</h1>
+    <p>Son depremlerin coğrafi konumu — büyüklüğe göre renklendirilmiştir. Bir noktaya tıklayarak detayları görebilirsiniz.</p>
+  </div>
+
+  <div id="map" role="application" aria-label="Türkiye deprem haritası"></div>
+  <div class="map-legend">
+    <span><i style="background:#3ECF8E;"></i> 3.5 altı</span>
+    <span><i style="background:#FFB13B;"></i> 3.5 – 4.9</span>
+    <span><i style="background:#FF4433;"></i> 5.0 ve üzeri</span>
+  </div>
+  <div style="height:40px;"></div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="disclaimer">
+      Harita üzerindeki koordinatlar ölçüm istasyonuna göre yaklaşık değerlerdir. © <span id="year"></span> Son Depremler.
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Son Depremler</a>
+      <a href="istatistik.html">İstatistik</a>
+      <a href="harita.html">Harita</a>
+      <a href="hakkinda.html">Hakkında &amp; Veri Kaynağı</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   SON DEPREMLER TR — API katmanı
+   Veri kaynağı: Kandilli Rasathanesi / AFAD (orhanaydogdu.com.tr API)
+   Bkz. hakkinda.html için atıf ve kullanım koşulları
+   ========================================================= */
+
+const API_BASE = 'https://api.orhanaydogdu.com.tr/deprem';
+
+/**
+ * Son depremleri getirir.
+ * @param {Object} opts
+ * @param {'all'|'kandilli'|'afad'} opts.provider
+ * @param {number} opts.limit
+ * @param {number} opts.skip
+ */
+async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } = {}) {
+  const path = provider === 'all' ? '' : `/${provider}/live`;
+  const url = `${API_BASE}${path}?limit=${limit}&skip=${skip}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Veri alınamadı (' + res.status + ')');
+  const data = await res.json();
+  if (!data || data.status !== true) throw new Error('API geçersiz yanıt döndürdü');
+  return data.result || [];
+}
+
+/** Şehir listesini getirir (plaka kodu, isim, nüfus). */
+async function fetchCities() {
+  const res = await fetch(`${API_BASE}/statics/cities`);
+  if (!res.ok) throw new Error('Şehir listesi alınamadı');
+  const data = await res.json();
+  return data.result || [];
+}
+
+/* ---------- Yardımcı fonksiyonlar ---------- */
+
+function magClass(mag) {
+  if (mag >= 5) return 'critical';
+  if (mag >= 3.5) return 'warn';
+  return 'safe';
+}
+
+function timeAgo(dateTimeStr) {
+  // "2024-01-08 11:45:23" formatı TR saatiyle (GMT+3) geliyor
+  const iso = dateTimeStr.replace(' ', 'T') + '+03:00';
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  let diff = Math.max(0, Math.floor((now - then) / 1000));
+
+  if (diff < 60) return 'az önce';
+  const min = Math.floor(diff / 60);
+  if (min < 60) return `${min} dk önce`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} sa önce`;
+  const day = Math.floor(hr / 24);
+  return `${day} gün önce`;
+}
+
+function formatDateTime(dateTimeStr) {
+  const iso = dateTimeStr.replace(' ', 'T') + '+03:00';
+  const d = new Date(iso);
+  return d.toLocaleString('tr-TR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function titleCaseLocation(title) {
+  if (!title) return '';
+  return title
+    .toLocaleLowerCase('tr-TR')
+    .split(' ')
+    .map(w => w.length ? w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1) : w)
+    .join(' ');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+
+/* =========================================================
+   SON DEPREMLER TR — Ortak arayüz davranışları
+   ========================================================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Mobil menü
+  const toggle = document.querySelector('.nav-toggle');
+  const nav = document.querySelector('.nav');
+  if (toggle && nav) {
+    toggle.addEventListener('click', () => nav.classList.toggle('open'));
+    nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
+  }
+
+  // Aktif nav linkini işaretle
+  const path = location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav a').forEach(a => {
+    const href = a.getAttribute('href');
+    if (href === path || (path === '' && href === 'index.html')) a.classList.add('active');
+  });
+
+  initSeismoStrip();
+});
+
+/* ---------- Sismogram şeridi (imza öge) ---------- */
+function initSeismoStrip(magnitudes) {
+  const el = document.getElementById('seismoSvg');
+  if (!el) return;
+
+  const W = 1200, H = 56, MID = H / 2;
+  const points = magnitudes && magnitudes.length ? magnitudes.slice(0, 40).reverse() : null;
+
+  let path = '';
+  let hasAlert = false;
+  const step = W / 60;
+
+  for (let i = 0; i <= 60; i++) {
+    let amp;
+    if (points && points[i % points.length] !== undefined) {
+      const m = points[i % points.length];
+      amp = Math.min(m, 6) * 3.2;
+      if (m >= 4.5) hasAlert = true;
+    } else {
+      amp = Math.sin(i * 0.7) * 3 + Math.random() * 2;
+    }
+    const jitter = (Math.random() - 0.5) * 2;
+    const y = MID + (i % 7 === 0 ? amp + jitter : jitter * 1.5);
+    path += `${i === 0 ? 'M' : 'L'} ${(i * step).toFixed(1)} ${y.toFixed(1)} `;
+  }
+
+  el.innerHTML = `
+    <line x1="0" y1="${MID}" x2="${W}" y2="${MID}" class="grid-line" stroke-dasharray="2 4"/>
+    <path d="${path}" class="trace ${hasAlert ? 'alert' : ''}" />
+  `;
+}
+
+</script>
+<script>
+const map = L.map('map', { zoomControl: true }).setView([39.0, 35.2], 6);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap katkıda bulunanlar &copy; CARTO',
+  maxZoom: 18
+}).addTo(map);
+
+function colorFor(mag) {
+  if (mag >= 5) return '#FF4433';
+  if (mag >= 3.5) return '#FFB13B';
+  return '#3ECF8E';
+}
+
+async function loadMapData() {
+  try {
+    const list = await fetchLiveEarthquakes({ provider: 'all', limit: 100 });
+    initSeismoStrip(list.map(e => e.mag));
+
+    list.forEach(q => {
+      const coords = q.geojson?.coordinates;
+      if (!coords) return;
+      const [lon, lat] = coords;
+      const color = colorFor(q.mag);
+      const marker = L.circleMarker([lat, lon], {
+        radius: Math.max(5, q.mag * 3),
+        color: color,
+        weight: 1.5,
+        fillColor: color,
+        fillOpacity: 0.35
+      }).addTo(map);
+
+      const city = q.location_properties?.closestCity?.name || '';
+      marker.bindPopup(`
+        <div style="font-family:'Inter',sans-serif; min-width:180px;">
+          <strong style="font-family:'JetBrains Mono',monospace; color:${color};">M ${q.mag.toFixed(1)}</strong>
+          <div style="margin:4px 0; font-weight:700;">${escapeHtml(titleCaseLocation(q.title))}</div>
+          <div style="font-size:12px; color:#8D97A5;">
+            ${q.depth?.toFixed(1) ?? '–'} km derinlik ${city ? '· ' + escapeHtml(city) : ''}<br>
+            ${formatDateTime(q.date_time)} · ${q.provider === 'afad' ? 'AFAD' : 'Kandilli'}
+          </div>
+        </div>
+      `);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+document.getElementById('year').textContent = new Date().getFullYear();
+loadMapData();
+</script>
+</body>
+</html>
