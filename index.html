@@ -650,20 +650,21 @@ const API_BASE = 'https://api.orhanaydogdu.com.tr/deprem';
 
 async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } = {}) {
   async function fetchOne(prov) {
-    const url = `${API_BASE}/${prov}/live?limit=${limit}&skip=${skip}`;
+    // 'all' için AFAD+Kandilli'yi TEK istekte birleştiren resmi endpoint kullanılır.
+    // Bu, rate limit'e (dakikada 40 istek) takılma riskini yarıya indirir.
+    const url = prov === 'all'
+      ? `${API_BASE}?limit=${limit}&skip=${skip}`
+      : `${API_BASE}/${prov}/live?limit=${limit}&skip=${skip}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Veri alınamadı (' + res.status + ')');
+    if (!res.ok) {
+      if (res.status === 429 || res.status === 403) {
+        throw new Error(`API_LIMIT_${res.status}`);
+      }
+      throw new Error('HTTP_' + res.status);
+    }
     const data = await res.json();
-    if (!data || data.status !== true) throw new Error('API geçersiz yanıt döndürdü');
+    if (!data || data.status !== true) throw new Error('API_INVALID_RESPONSE');
     return data.result || [];
-  }
-
-  if (provider === 'all') {
-    const [kandilli, afad] = await Promise.all([
-      fetchOne('kandilli'),
-      fetchOne('afad')
-    ]);
-    return [...kandilli, ...afad];
   }
 
   return fetchOne(provider);
@@ -718,6 +719,50 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+/**
+ * AFAD ve Kandilli çoğu zaman aynı fiziksel depremi ayrı ayrı bildirir.
+ * Aynı olayı (yakın zaman + yakın konum + yakın büyüklük) tek kayda indirger, AFAD kaydını tercih eder.
+ */
+function dedupeQuakes(list) {
+  const sorted = [...list].sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
+  const kept = [];
+  for (const q of sorted) {
+    const [lon, lat] = q.geojson?.coordinates || [null, null];
+    const t = new Date(q.date_time.replace(' ', 'T') + '+03:00').getTime();
+    let dupIdx = -1;
+    for (let i = 0; i < kept.length; i++) {
+      const k = kept[i];
+      const [klon, klat] = k.geojson?.coordinates || [null, null];
+      if (lat == null || klat == null) continue;
+      const kt = new Date(k.date_time.replace(' ', 'T') + '+03:00').getTime();
+      const timeClose = Math.abs(kt - t) <= 90 * 1000;
+      const distClose = Math.abs(lat - klat) < 0.15 && Math.abs(lon - klon) < 0.15;
+      const magClose = Math.abs(k.mag - q.mag) < 0.8;
+      if (timeClose && distClose && magClose) { dupIdx = i; break; }
+    }
+    if (dupIdx === -1) kept.push(q);
+    else if (q.provider === 'afad' && kept[dupIdx].provider !== 'afad') kept[dupIdx] = q;
+  }
+  return kept;
+}
+
+function friendlyErrorMessage(e) {
+  const msg = e?.message || '';
+  if (msg === 'API_LIMIT_429') {
+    return 'Veri kaynağı şu anda çok sık istek nedeniyle geçici olarak sınırlandırdı (429). Lütfen birkaç dakika bekleyip tekrar deneyin.';
+  }
+  if (msg === 'API_LIMIT_403') {
+    return 'Veri kaynağı bu bağlantıyı geçici olarak engellemiş görünüyor (403). Bu genellikle kısa sürede aşırı istek gönderilmesinden kaynaklanır ve otomatik olarak birkaç gün içinde kalkar.';
+  }
+  if (msg.startsWith('HTTP_')) {
+    return `Veriler alınamadı (sunucu hatası: ${msg.replace('HTTP_', '')}). Lütfen daha sonra tekrar deneyin.`;
+  }
+  if (msg === 'API_INVALID_RESPONSE') {
+    return 'Veri kaynağından geçersiz bir yanıt alındı. Lütfen sayfayı birkaç dakika sonra yenileyin.';
+  }
+  return 'Veriler alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const path = location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-item[data-page]').forEach(a => {
@@ -757,6 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let allQuakes = [];
 let visibleCount = 20;
 let activeProviders = new Set(['afad', 'kandilli']);
+let refreshPausedUntil = 0;
 
 async function loadCities() {
   try {
@@ -852,17 +898,27 @@ function renderList() {
 }
 
 async function loadData() {
+  if (Date.now() < refreshPausedUntil) return; // rate limit sonrası bekleme süresinde yeni istek atma
   try {
     const providers = [...activeProviders];
-    const results = await Promise.all(providers.map(p => fetchLiveEarthquakes({ provider: p, limit: 100 })));
-    let merged = results.flat();
-    if (providers.length > 1) merged = dedupeQuakes(merged);
+    let merged;
+    if (providers.length >= 2) {
+      // Her iki kaynak da açık: TEK istekte birleşik endpoint kullanılır (rate limit dostu)
+      merged = await fetchLiveEarthquakes({ provider: 'all', limit: 100 });
+      merged = dedupeQuakes(merged);
+    } else {
+      merged = await fetchLiveEarthquakes({ provider: providers[0], limit: 100 });
+    }
     allQuakes = merged.sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
     renderStrip(allQuakes);
     renderList();
   } catch (e) {
+    console.error('Deprem verisi alınamadı:', e);
+    if (e?.message === 'API_LIMIT_429' || e?.message === 'API_LIMIT_403') {
+      refreshPausedUntil = Date.now() + 5 * 60 * 1000; // 5 dk boyunca yeni istek atma
+    }
     document.getElementById('quakeList').innerHTML =
-      `<li class="error-state">Veriler alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.</li>`;
+      `<li class="error-state">${friendlyErrorMessage(e)}</li>`;
   }
 }
 window.onRefreshClick = loadData;
