@@ -3,55 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deprem İstatistikleri – Son 100 Deprem Analizi | Son Depremler</title>
-<meta name="description" content="Türkiye'deki son depremlerin büyüklük dağılımı, il bazında yoğunluk ve derinlik istatistikleri. AFAD ve Kandilli verileriyle güncel deprem analizi.">
-<meta name="keywords" content="deprem istatistikleri, deprem analizi, en çok deprem olan iller, deprem büyüklük dağılımı">
+<title>Deprem İstatistikleri – Türkiye Deprem Analizi | Son Depremler</title>
+<meta name="description" content="Son depremlere ait büyüklük dağılımı, kaynak dağılımı (AFAD/Kandilli) ve illere göre deprem yoğunluğu istatistikleri.">
+<meta name="keywords" content="deprem istatistikleri, deprem analizi, türkiye deprem verisi, il bazında deprem">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://epicenterlive.com.tr/istatistik.html">
 <meta property="og:title" content="Deprem İstatistikleri | Son Depremler">
-<meta property="og:description" content="Türkiye'deki son depremlerin büyüklük ve il bazında istatistiksel analizi.">
-<meta name="theme-color" content="#0B0F14">
+<meta property="og:description" content="Son depremlere ait büyüklük, kaynak ve il bazlı istatistikler.">
+<meta name="theme-color" content="#e0473f">
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* =========================================================
-   SON DEPREMLER TR — Tasarım Sistemi
-   Tema: gece nöbetçi istasyonu / sismograf enstrümanı
+   SON DEPREMLER — Tasarım Sistemi (sondepremler.org esintili)
+   Tema: açık / uygulama görünümlü liste arayüzü
    ========================================================= */
 
 :root{
-  /* --- Renkler --- */
-  --bg:            #0B0F14;
-  --bg-raised:     #10151C;
-  --surface:       #151B23;
-  --surface-hover: #1B222C;
-  --border:        #232B36;
-  --border-soft:   #1B222C;
+  --bg:            #eef1f0;
+  --bg-header:     #ffffff;
+  --surface:       #ffffff;
+  --border:        #e2e6e4;
+  --border-soft:   #ececec;
 
-  --text-primary:  #EDEFF2;
-  --text-muted:    #8D97A5;
-  --text-faint:    #5B6472;
+  --text-primary:  #14181a;
+  --text-muted:    #6b7680;
+  --text-faint:    #98a2a9;
 
-  --accent-brand:  #FF4433;   /* marka / kritik */
-  --accent-warn:   #FFB13B;   /* orta */
-  --accent-safe:   #3ECF8E;   /* düşük */
-  --accent-info:   #4FA3FF;   /* bilgi / afad */
-  --accent-kandilli: #C792FF; /* kandilli */
+  --accent-brand:  #e0473f;   /* marka kırmızısı */
+  --accent-warn:   #f5a524;   /* orta büyüklük */
+  --accent-safe:   #1fa34a;   /* düşük büyüklük */
+  --accent-info:   #3f7fd1;   /* afad */
+  --accent-kandilli:#e0473f;  /* kandilli */
 
-  --line: #2A3340;
+  --card-safe-bg:      #dff5e1;
+  --card-safe-border:  #c6ebc9;
+  --card-warn-bg:      #fdecd0;
+  --card-warn-border:  #fbdca3;
+  --card-critical-bg:  #fbdada;
+  --card-critical-border:#f5b8b6;
 
-  /* --- Tipografi --- */
   --font-display: 'Space Grotesk', sans-serif;
   --font-body:    'Inter', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 
   --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-md: 12px;
   --radius-lg: 16px;
 
-  --shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px -12px rgba(0,0,0,0.6);
+  --shadow-card: 0 1px 2px rgba(20,24,26,0.04);
+  --shadow-float: 0 8px 24px -6px rgba(20,24,26,0.18);
+  --nav-h: 66px;
 }
 
 *{ box-sizing:border-box; }
@@ -63,8 +68,9 @@ body{
   color:var(--text-primary);
   font-family:var(--font-body);
   font-size:15px;
-  line-height:1.55;
+  line-height:1.5;
   -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(var(--nav-h) + 18px);
 }
 
 a{ color:inherit; text-decoration:none; }
@@ -77,7 +83,6 @@ button{ font-family:inherit; }
   *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
 }
 
-/* focus görünürlüğü */
 a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible{
   outline:2px solid var(--accent-info);
   outline-offset:2px;
@@ -85,325 +90,220 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 }
 
 .container{
-  max-width:1180px;
+  max-width:720px;
   margin:0 auto;
-  padding:0 20px;
+  padding:0 16px;
 }
 
 /* =========================================================
-   ÜST BAR
+   ÜST BAR / MARKA
    ========================================================= */
 .topbar{
-  position:sticky; top:0; z-index:50;
-  background:rgba(11,15,20,0.86);
-  backdrop-filter:blur(10px);
+  background:var(--bg-header);
   border-bottom:1px solid var(--border);
 }
 .topbar-inner{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 20px;
-  max-width:1180px; margin:0 auto;
-  gap:16px;
+  display:flex; align-items:center; gap:14px;
+  padding:16px 16px;
+  max-width:720px; margin:0 auto;
 }
-.brand{ display:flex; align-items:center; gap:10px; }
-.brand-mark{ width:30px; height:30px; flex-shrink:0; }
-.brand-name{
+.brand-icon{
+  width:52px; height:52px; flex-shrink:0;
+  border-radius:12px;
+  background:linear-gradient(180deg,#f4f5f5,#e7e9e8);
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+}
+.brand-icon svg{ width:30px; height:30px; }
+.brand-title{
   font-family:var(--font-display);
   font-weight:700;
-  font-size:19px;
+  font-size:21px;
   letter-spacing:-0.01em;
+  margin:0 0 3px;
   color:var(--text-primary);
 }
-.brand-name em{
-  font-style:normal;
-  color:var(--accent-brand);
-}
-.brand-tag{
-  display:block;
-  font-family:var(--font-mono);
+.brand-sub{
+  margin:0;
   font-size:10.5px;
-  letter-spacing:0.06em;
-  color:var(--text-faint);
-  text-transform:uppercase;
-  margin-top:1px;
-}
-
-.nav{ display:flex; align-items:center; gap:4px; }
-.nav a{
-  padding:8px 14px;
-  border-radius:8px;
-  font-size:13.5px;
-  font-weight:600;
+  font-weight:700;
+  letter-spacing:.03em;
   color:var(--text-muted);
-  transition:color .15s ease, background .15s ease;
+  text-transform:uppercase;
+  line-height:1.4;
 }
-.nav a:hover{ color:var(--text-primary); background:var(--surface); }
-.nav a.active{ color:var(--text-primary); background:var(--surface); }
-.nav a.active::after{ content:''; }
-
-.nav-toggle{
+.page-nav-links{
   display:none;
-  background:none; border:1px solid var(--border); color:var(--text-primary);
-  width:38px; height:38px; border-radius:8px; cursor:pointer;
-  align-items:center; justify-content:center;
-}
-
-/* Canlı rozet */
-.live-dot{
-  display:inline-flex; align-items:center; gap:6px;
-  font-family:var(--font-mono); font-size:11px; letter-spacing:.05em;
-  color:var(--accent-safe); text-transform:uppercase;
-  padding:6px 10px; border:1px solid var(--border); border-radius:999px;
-  background:var(--surface);
-}
-.live-dot .dot{
-  width:7px; height:7px; border-radius:50%;
-  background:var(--accent-safe);
-  box-shadow:0 0 0 0 rgba(62,207,142,.6);
-  animation:pulse-dot 2s infinite;
-}
-@keyframes pulse-dot{
-  0%{ box-shadow:0 0 0 0 rgba(62,207,142,.55); }
-  70%{ box-shadow:0 0 0 7px rgba(62,207,142,0); }
-  100%{ box-shadow:0 0 0 0 rgba(62,207,142,0); }
 }
 
 /* =========================================================
-   SİSMOGRAM ŞERİDİ (imza öge)
+   KAYNAK SEÇİCİ (AFAD / Kandilli)
    ========================================================= */
-.seismo-strip{
-  width:100%;
-  height:56px;
-  background:
-    linear-gradient(180deg, #0D1219 0%, #0A0D12 100%);
-  border-bottom:1px solid var(--border);
-  overflow:hidden;
-  position:relative;
+.source-toggle-row{
+  display:flex; justify-content:center;
+  padding:14px 0 4px;
 }
-.seismo-strip svg{ display:block; width:100%; height:100%; }
-.seismo-strip .grid-line{ stroke:var(--line); stroke-width:1; }
-.seismo-strip .trace{
-  fill:none;
-  stroke:var(--accent-safe);
-  stroke-width:1.4;
-  filter:drop-shadow(0 0 3px rgba(62,207,142,.35));
-}
-.seismo-strip .trace.alert{ stroke:var(--accent-brand); filter:drop-shadow(0 0 4px rgba(255,68,51,.5)); }
-.seismo-label{
-  position:absolute; left:20px; top:6px;
-  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em;
-  color:var(--text-faint); text-transform:uppercase;
-}
-
-/* =========================================================
-   HERO / DURUM BLOKLARI
-   ========================================================= */
-.hero{
-  padding:28px 0 22px;
-  display:grid;
-  grid-template-columns:1.5fr 1fr;
-  gap:16px;
-}
-@media (max-width:860px){ .hero{ grid-template-columns:1fr; } }
-
-.hero-card{
-  background:var(--surface);
+.source-toggle-pill{
+  display:inline-flex;
+  background:#fff;
   border:1px solid var(--border);
-  border-radius:var(--radius-lg);
-  padding:22px;
+  border-radius:999px;
+  padding:4px;
   box-shadow:var(--shadow-card);
+  gap:2px;
 }
-.hero-eyebrow{
-  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
-  color:var(--text-faint); text-transform:uppercase; margin-bottom:12px;
-  display:flex; align-items:center; gap:8px;
+.src-btn{
+  border:none; background:transparent; cursor:pointer;
+  padding:8px 20px;
+  border-radius:999px;
+  font-size:13.5px; font-weight:700;
+  color:var(--text-muted);
+  transition:background .15s ease, color .15s ease;
 }
-.hero-quake-title{
-  font-family:var(--font-display); font-size:26px; font-weight:700;
-  letter-spacing:-0.01em; margin:0 0 6px;
+.src-btn.active{
+  background:var(--accent-brand);
+  color:#fff;
 }
-.hero-quake-meta{ color:var(--text-muted); font-size:13.5px; }
-.hero-quake-meta strong{ color:var(--text-primary); }
-
-.mag-badge{
-  display:inline-flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-weight:700;
-  border-radius:10px;
-  flex-shrink:0;
-}
-.mag-badge.safe{ background:rgba(62,207,142,.12); color:var(--accent-safe); border:1px solid rgba(62,207,142,.35); }
-.mag-badge.warn{ background:rgba(255,177,59,.12); color:var(--accent-warn); border:1px solid rgba(255,177,59,.35); }
-.mag-badge.critical{ background:rgba(255,68,51,.14); color:var(--accent-brand); border:1px solid rgba(255,68,51,.4); }
-
-.stat-grid{
-  display:grid; grid-template-columns:1fr 1fr; gap:12px;
-}
-.stat-box{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
-  padding:16px;
-}
-.stat-box .num{
-  font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--text-primary);
-  display:block;
-}
-.stat-box .lbl{
-  font-size:11.5px; color:var(--text-muted); margin-top:4px; display:block;
-  text-transform:uppercase; letter-spacing:.04em;
-}
-
-/* =========================================================
-   FİLTRE ÇUBUĞU
-   ========================================================= */
-.filters{
-  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
-  padding:14px 18px;
-  background:var(--bg-raised);
-  border:1px solid var(--border);
-  border-radius:var(--radius-md);
-  margin-bottom:18px;
-}
-.filters .field{ display:flex; flex-direction:column; gap:5px; }
-.filters label{
-  font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint);
-  font-family:var(--font-mono);
-}
-.filters select, .filters input[type=range]{
-  background:var(--surface); color:var(--text-primary);
-  border:1px solid var(--border); border-radius:8px;
-  padding:8px 10px; font-size:13px; font-family:var(--font-body);
-}
-.filters .source-toggle{ display:flex; gap:6px; }
-.chip{
-  padding:8px 13px; border-radius:999px; border:1px solid var(--border);
-  background:var(--surface); color:var(--text-muted); font-size:12.5px; font-weight:600;
-  cursor:pointer; transition:all .15s ease;
-}
-.chip.active{ background:var(--text-primary); color:var(--bg); border-color:var(--text-primary); }
-.chip:hover:not(.active){ border-color:var(--text-muted); color:var(--text-primary); }
-
-.btn-refresh{
-  margin-left:auto;
-  display:flex; align-items:center; gap:7px;
-  background:var(--accent-brand); color:#fff; border:none;
-  padding:9px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;
-  transition:filter .15s ease;
-}
-.btn-refresh:hover{ filter:brightness(1.1); }
-.btn-refresh svg{ width:14px; height:14px; }
-.btn-refresh.spinning svg{ animation:spin .8s linear infinite; }
-@keyframes spin{ to{ transform:rotate(360deg); } }
 
 /* =========================================================
    DEPREM LİSTESİ
    ========================================================= */
-.quake-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:40px; }
+.quake-list{ display:flex; flex-direction:column; gap:12px; padding:14px 0 30px; }
+
 .quake-card{
-  display:grid;
-  grid-template-columns:56px 1fr auto;
+  display:flex;
   align-items:center;
-  gap:16px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius-md);
+  gap:14px;
   padding:14px 16px;
-  transition:border-color .15s ease, background .15s ease;
+  border-radius:var(--radius-lg);
+  border:1px solid var(--card-safe-border);
+  background:var(--card-safe-bg);
 }
-.quake-card:hover{ border-color:var(--text-faint); background:var(--surface-hover); }
-.quake-card .mag-badge{ width:56px; height:56px; font-size:19px; }
-.quake-title{ font-weight:700; font-size:14.5px; margin:0 0 4px; }
-.quake-sub{
-  display:flex; flex-wrap:wrap; gap:12px;
-  font-size:12px; color:var(--text-muted); font-family:var(--font-mono);
+.quake-card.warn{ background:var(--card-warn-bg); border-color:var(--card-warn-border); }
+.quake-card.critical{ background:var(--card-critical-bg); border-color:var(--card-critical-border); }
+
+.mag-badge{
+  flex-shrink:0;
+  width:58px; height:58px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.75);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:700; font-size:22px;
+  color:var(--text-primary);
 }
-.quake-sub .provider{
-  padding:1px 7px; border-radius:5px; font-weight:700; font-size:10px; letter-spacing:.03em;
+
+.quake-info{ flex:1; min-width:0; }
+.quake-title{
+  font-weight:800; font-size:14.5px; letter-spacing:.01em;
+  margin:0 0 6px; color:var(--text-primary);
+  text-transform:uppercase;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.provider.afad{ background:rgba(79,163,255,.14); color:var(--accent-info); }
-.provider.kandilli{ background:rgba(199,146,255,.14); color:var(--accent-kandilli); }
-.quake-time{ text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--text-muted); white-space:nowrap; }
-.quake-time .ago{ display:block; color:var(--text-primary); font-weight:700; font-size:13px; }
+.quake-meta{
+  display:flex; flex-wrap:wrap; gap:14px;
+  font-size:12.5px; color:var(--text-muted); font-weight:600;
+}
+.quake-meta .meta-item{ display:inline-flex; align-items:center; gap:5px; }
+.quake-meta svg{ width:14px; height:14px; opacity:.75; flex-shrink:0; }
+
+.share-btn{
+  flex-shrink:0;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:none; border:none; cursor:pointer;
+  color:var(--text-muted); font-size:10.5px; font-weight:700;
+  padding:4px;
+}
+.share-btn svg{ width:18px; height:18px; }
+.share-btn:hover{ color:var(--text-primary); }
+
+.provider-tag{
+  display:inline-flex; align-items:center;
+  font-size:10px; font-weight:800; letter-spacing:.03em;
+  padding:1px 7px; border-radius:5px;
+}
+.provider-tag.afad{ background:rgba(63,127,209,.14); color:var(--accent-info); }
+.provider-tag.kandilli{ background:rgba(224,71,63,.14); color:var(--accent-brand); }
 
 .empty-state, .error-state{
   text-align:center; padding:50px 20px; color:var(--text-muted);
   border:1px dashed var(--border); border-radius:var(--radius-md);
+  background:#fff;
 }
-.error-state{ color:var(--accent-warn); border-color:rgba(255,177,59,.3); }
+.error-state{ color:#b5432c; border-color:#f0c3bc; }
 
 .skeleton{
-  background:linear-gradient(90deg, var(--surface) 25%, var(--surface-hover) 37%, var(--surface) 63%);
+  background:linear-gradient(90deg, #fff 25%, #f2f2f2 37%, #fff 63%);
   background-size:400% 100%;
   animation:shimmer 1.4s ease infinite;
-  border-radius:var(--radius-md);
-  height:84px;
+  border-radius:var(--radius-lg);
+  height:86px;
+  border:1px solid var(--border);
 }
 @keyframes shimmer{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
 
 .load-more{
-  display:block; width:100%; padding:12px; text-align:center;
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
-  color:var(--text-muted); font-weight:600; cursor:pointer; font-size:13px;
+  display:block; width:100%; padding:13px; text-align:center;
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius-md);
+  color:var(--text-muted); font-weight:700; font-size:13px; cursor:pointer;
 }
 .load-more:hover{ color:var(--text-primary); border-color:var(--text-faint); }
 
 /* =========================================================
-   SAYFA BAŞLIKLARI / GENEL BLOKLAR
+   SAYFA BAŞLIKLARI / GENEL BLOKLAR (istatistik, harita, hakkında)
    ========================================================= */
-.page-head{ padding:36px 0 8px; }
+.page-head{ padding:22px 0 4px; }
 .page-head .kicker{
   font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
-  color:var(--accent-brand); margin-bottom:8px; display:block;
+  color:var(--accent-brand); margin-bottom:6px; display:block; font-weight:700;
 }
 .page-head h1{
-  font-family:var(--font-display); font-size:32px; margin:0 0 8px; letter-spacing:-0.01em;
+  font-family:var(--font-display); font-size:26px; margin:0 0 8px; letter-spacing:-0.01em;
 }
-.page-head p{ color:var(--text-muted); max-width:640px; margin:0; }
+.page-head p{ color:var(--text-muted); max-width:640px; margin:0; font-size:13.5px; }
 
 .card{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:20px; box-shadow:var(--shadow-card);
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:18px; box-shadow:var(--shadow-card);
 }
 .section-title{
-  font-family:var(--font-display); font-size:18px; margin:0 0 14px; font-weight:700;
+  font-family:var(--font-display); font-size:16px; margin:0 0 14px; font-weight:700;
 }
 
-.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-@media (max-width:860px){ .grid-2, .grid-3{ grid-template-columns:1fr; } }
+.grid-2{ display:grid; grid-template-columns:1fr; gap:14px; }
+.grid-3{ display:grid; grid-template-columns:1fr; gap:14px; }
 
-/* İstatistik sayfası mini kutular */
-.kpi-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px; }
-@media (max-width:860px){ .kpi-row{ grid-template-columns:1fr 1fr; } }
+.kpi-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
 .kpi{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px;
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); padding:14px;
 }
-.kpi .num{ font-family:var(--font-mono); font-size:26px; font-weight:700; }
-.kpi .lbl{ font-size:11.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:4px; }
+.kpi .num{ font-family:var(--font-mono); font-size:22px; font-weight:700; }
+.kpi .lbl{ font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; margin-top:4px; display:block; }
 
-.chart-wrap{ position:relative; height:280px; }
+.chart-wrap{ position:relative; height:240px; }
 
-table.city-table{ width:100%; border-collapse:collapse; font-size:13px; }
+table.city-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
 table.city-table th{
-  text-align:left; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase;
-  color:var(--text-faint); padding:8px 10px; border-bottom:1px solid var(--border); letter-spacing:.05em;
+  text-align:left; font-family:var(--font-mono); font-size:10px; text-transform:uppercase;
+  color:var(--text-faint); padding:8px 8px; border-bottom:1px solid var(--border); letter-spacing:.04em;
 }
-table.city-table td{ padding:10px; border-bottom:1px solid var(--border-soft); }
+table.city-table td{ padding:9px 8px; border-bottom:1px solid var(--border-soft); }
 table.city-table tr:last-child td{ border-bottom:none; }
-table.city-table .bar-bg{ background:var(--bg-raised); border-radius:4px; height:8px; width:100%; overflow:hidden; }
+table.city-table .bar-bg{ background:#eef1f0; border-radius:4px; height:8px; width:100%; overflow:hidden; }
 table.city-table .bar-fg{ background:var(--accent-brand); height:100%; border-radius:4px; }
 
 /* =========================================================
    HARİTA SAYFASI
    ========================================================= */
 #map{
-  width:100%; height:70vh; min-height:420px;
+  width:100%; height:60vh; min-height:380px;
   border-radius:var(--radius-lg); border:1px solid var(--border);
 }
 .leaflet-popup-content-wrapper{
-  background:var(--surface); color:var(--text-primary); border:1px solid var(--border);
+  background:#fff; color:var(--text-primary); border:1px solid var(--border);
 }
-.leaflet-popup-tip{ background:var(--surface); }
+.leaflet-popup-tip{ background:#fff; }
 .map-legend{
-  display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--text-muted);
+  display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--text-muted);
 }
 .map-legend span{ display:inline-flex; align-items:center; gap:6px; }
 .map-legend i{ width:10px; height:10px; border-radius:50%; display:inline-block; }
@@ -413,66 +313,119 @@ table.city-table .bar-fg{ background:var(--accent-brand); height:100%; border-ra
    ========================================================= */
 footer{
   border-top:1px solid var(--border);
-  margin-top:60px;
-  padding:32px 0 40px;
+  margin-top:32px;
+  padding:24px 0 20px;
   color:var(--text-faint);
-  font-size:12.5px;
+  font-size:12px;
 }
-footer .container{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:flex-start; }
+footer .container{ display:flex; flex-direction:column; gap:8px; }
 footer a{ color:var(--text-muted); }
 footer a:hover{ color:var(--text-primary); }
-.footer-links{ display:flex; gap:16px; flex-wrap:wrap; }
-.disclaimer{ max-width:520px; line-height:1.6; }
+.footer-links{ display:none; }
+.disclaimer{ line-height:1.6; }
 
 /* =========================================================
-   MOBİL
+   ALT GEZİNME ÇUBUĞU (bottom nav)
    ========================================================= */
-@media (max-width:760px){
-  .nav{
-    position:fixed; top:64px; left:0; right:0; bottom:0;
-    background:var(--bg); border-top:1px solid var(--border);
-    flex-direction:column; align-items:stretch; padding:12px; gap:4px;
-    transform:translateY(-110%); transition:transform .2s ease; z-index:40;
-  }
-  .nav.open{ transform:translateY(0); }
-  .nav a{ padding:14px; font-size:15px; }
-  .nav-toggle{ display:flex; }
-  .quake-card{ grid-template-columns:44px 1fr; }
-  .quake-card .mag-badge{ width:44px; height:44px; font-size:15px; }
-  .quake-time{ grid-column:1 / -1; text-align:left; margin-top:6px; }
+.bottom-nav{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  height:var(--nav-h);
+  background:#ffffff;
+  border-top:1px solid var(--border);
+  display:flex; align-items:stretch; justify-content:space-around;
+  box-shadow:0 -6px 18px -8px rgba(20,24,26,0.12);
+  max-width:720px; margin:0 auto;
+}
+.nav-item{
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px;
+  background:none; border:none; cursor:pointer;
+  color:var(--text-muted);
+  font-size:10.5px; font-weight:700;
+  padding:6px 2px;
+}
+.nav-item svg{ width:21px; height:21px; }
+.nav-item.active{ color:var(--accent-brand); }
+.nav-item .spin-icon{ transition:transform .5s ease; }
+.nav-item.spinning .spin-icon{ animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* =========================================================
+   FİLTRE ALT SAYFASI (bottom sheet)
+   ========================================================= */
+.sheet-overlay{
+  position:fixed; inset:0; background:rgba(15,18,20,0.45);
+  z-index:70; display:flex; align-items:flex-end; justify-content:center;
+}
+.sheet-overlay[hidden]{ display:none; }
+.filter-sheet{
+  background:#fff; width:100%; max-width:720px;
+  border-radius:20px 20px 0 0;
+  padding:18px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -10px 30px rgba(0,0,0,0.15);
+}
+.sheet-handle{
+  width:36px; height:4px; background:var(--border); border-radius:99px;
+  margin:0 auto 14px;
+}
+.sheet-title{ font-family:var(--font-display); font-weight:700; font-size:17px; margin:0 0 14px; }
+.sheet-field{ margin-bottom:14px; }
+.sheet-field label{
+  display:block; font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--text-faint); font-weight:700; margin-bottom:6px;
+}
+.sheet-field select{
+  width:100%; background:#f5f6f6; color:var(--text-primary);
+  border:1px solid var(--border); border-radius:10px;
+  padding:11px 12px; font-size:14px; font-family:var(--font-body);
+}
+.sheet-apply{
+  width:100%; background:var(--accent-brand); color:#fff; border:none;
+  padding:13px; border-radius:12px; font-weight:700; font-size:14.5px; cursor:pointer;
+  margin-top:4px;
+}
+
+/* =========================================================
+   HERO (index sayfası — son deprem özeti, opsiyonel gösterim)
+   ========================================================= */
+.hero-strip{
+  display:flex; gap:10px; padding:2px 0 4px;
+  overflow-x:auto;
+}
+.hero-strip .stat-box{
+  flex:1; min-width:130px;
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:12px 14px;
+}
+.hero-strip .stat-box .num{
+  font-family:var(--font-mono); font-size:19px; font-weight:700; color:var(--text-primary); display:block;
+}
+.hero-strip .stat-box .lbl{
+  font-size:10px; color:var(--text-muted); margin-top:3px; display:block;
+  text-transform:uppercase; letter-spacing:.03em;
+}
+
+@media (min-width:640px){
+  .grid-2{ grid-template-columns:1fr 1fr; }
+  .kpi-row{ grid-template-columns:repeat(4,1fr); }
 }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 </head>
 <body>
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a href="index.html" class="brand">
-      <svg class="brand-mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="16" cy="16" r="15" stroke="#FF4433" stroke-width="2"/>
-        <path d="M4 16 L11 16 L13.5 9 L18 23 L20.5 16 L28 16" stroke="#FF4433" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <div class="brand-icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 16 L10 16 L12.5 7 L17.5 25 L20.5 16 L30 16" stroke="#e0473f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
-      <span>
-        <span class="brand-name">Son <em>Depremler</em></span>
-        <span class="brand-tag">Türkiye Deprem Takip</span>
-      </span>
-    </a>
-    <button class="nav-toggle" aria-label="Menüyü aç">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <nav class="nav">
-      <a href="index.html">Son Depremler</a>
-      <a href="istatistik.html">İstatistik</a>
-      <a href="harita.html">Harita</a>
-      <a href="hakkinda.html">Hakkında</a>
-    </nav>
-    <span class="live-dot"><span class="dot"></span> Canlı</span>
-  </div>
-  <div class="seismo-strip">
-    <span class="seismo-label">Sismogram · anlık şerit</span>
-    <svg id="seismoSvg" viewBox="0 0 1200 56" preserveAspectRatio="none"></svg>
+    </div>
+    <div>
+      <h1 class="brand-title">SON DEPREMLER</h1>
+      <p class="brand-sub">Türkiye ve yakın çevresindeki Kandilli ve AFAD verileriyle son 500 deprem</p>
+    </div>
   </div>
 </header>
 
@@ -490,7 +443,7 @@ footer a:hover{ color:var(--text-primary); }
     <div class="kpi"><span class="num" id="kpiAvgDepth">–</span><span class="lbl">Ortalama derinlik (km)</span></div>
   </div>
 
-  <div class="grid-2" style="margin-bottom:16px;">
+  <div class="grid-2" style="margin-bottom:14px;">
     <div class="card">
       <h2 class="section-title">Büyüklük Dağılımı</h2>
       <div class="chart-wrap"><canvas id="magChart"></canvas></div>
@@ -501,7 +454,7 @@ footer a:hover{ color:var(--text-primary); }
     </div>
   </div>
 
-  <div class="card" style="margin-bottom:40px;">
+  <div class="card" style="margin-bottom:24px;">
     <h2 class="section-title">İllere Göre Deprem Yoğunluğu</h2>
     <table class="city-table" id="cityTable">
       <thead><tr><th>İl</th><th>Deprem Sayısı</th><th style="width:40%;">Oran</th></tr></thead>
@@ -524,22 +477,47 @@ footer a:hover{ color:var(--text-primary); }
   </div>
 </footer>
 
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item" data-page="index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+    Anasayfa
+  </a>
+  <button class="nav-item" id="navRefreshBtn">
+    <svg class="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+    Yenile
+  </button>
+  <button class="nav-item" id="navFilterBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    Filtrele
+  </button>
+  <a href="istatistik.html" class="nav-item" data-page="istatistik.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/></svg>
+    İstatistik
+  </a>
+  <a href="harita.html" class="nav-item" data-page="harita.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3Z"/><path d="M9 7v13"/><path d="M15 4v13"/></svg>
+    Harita
+  </a>
+</nav>
+
+<div class="sheet-overlay" id="sheetOverlay" hidden>
+  <div class="filter-sheet">
+    <div class="sheet-handle"></div>
+    <h3 class="sheet-title">Filtrele</h3>
+    <p style="color:var(--text-muted); font-size:13px; margin:0 0 14px;">İstatistikler her zaman son 100 depreme (AFAD + Kandilli) göre hesaplanır.</p>
+    <button class="sheet-apply" data-close-sheet>Kapat</button>
+  </div>
+</div>
+
 <script>
 /* =========================================================
-   SON DEPREMLER TR — API katmanı
+   SON DEPREMLER — API katmanı
    Veri kaynağı: Kandilli Rasathanesi / AFAD (orhanaydogdu.com.tr API)
    Bkz. hakkinda.html için atıf ve kullanım koşulları
    ========================================================= */
 
 const API_BASE = 'https://api.orhanaydogdu.com.tr/deprem';
 
-/**
- * Son depremleri getirir.
- * @param {Object} opts
- * @param {'all'|'kandilli'|'afad'} opts.provider
- * @param {number} opts.limit
- * @param {number} opts.skip
- */
 async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } = {}) {
   async function fetchOne(prov) {
     const url = `${API_BASE}/${prov}/live?limit=${limit}&skip=${skip}`;
@@ -561,15 +539,12 @@ async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } =
   return fetchOne(provider);
 }
 
-/** Şehir listesini getirir (plaka kodu, isim, nüfus). */
 async function fetchCities() {
   const res = await fetch(`${API_BASE}/statics/cities`);
   if (!res.ok) throw new Error('Şehir listesi alınamadı');
   const data = await res.json();
   return data.result || [];
 }
-
-/* ---------- Yardımcı fonksiyonlar ---------- */
 
 function magClass(mag) {
   if (mag >= 5) return 'critical';
@@ -578,19 +553,18 @@ function magClass(mag) {
 }
 
 function timeAgo(dateTimeStr) {
-  // "2024-01-08 11:45:23" formatı TR saatiyle (GMT+3) geliyor
   const iso = dateTimeStr.replace(' ', 'T') + '+03:00';
   const then = new Date(iso).getTime();
   const now = Date.now();
   let diff = Math.max(0, Math.floor((now - then) / 1000));
 
-  if (diff < 60) return 'az önce';
+  if (diff < 60) return 'Az Önce';
   const min = Math.floor(diff / 60);
-  if (min < 60) return `${min} dk önce`;
+  if (min < 60) return `${min} Dk. Önce`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} sa önce`;
+  if (hr < 24) return `${hr} Saat Önce`;
   const day = Math.floor(hr / 24);
-  return `${day} gün önce`;
+  return `${day} Gün Önce`;
 }
 
 function formatDateTime(dateTimeStr) {
@@ -605,10 +579,7 @@ function formatDateTime(dateTimeStr) {
 function titleCaseLocation(title) {
   if (!title) return '';
   return title
-    .toLocaleLowerCase('tr-TR')
-    .split(' ')
-    .map(w => w.length ? w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1) : w)
-    .join(' ');
+    .toLocaleUpperCase('tr-TR');
 }
 
 function escapeHtml(str) {
@@ -617,61 +588,39 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-
-/* =========================================================
-   SON DEPREMLER TR — Ortak arayüz davranışları
-   ========================================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
-  // Mobil menü
-  const toggle = document.querySelector('.nav-toggle');
-  const nav = document.querySelector('.nav');
-  if (toggle && nav) {
-    toggle.addEventListener('click', () => nav.classList.toggle('open'));
-    nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
-  }
-
-  // Aktif nav linkini işaretle
   const path = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('.nav a').forEach(a => {
-    const href = a.getAttribute('href');
-    if (href === path || (path === '' && href === 'index.html')) a.classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(a => {
+    if (a.dataset.page === path || (path === '' && a.dataset.page === 'index.html')) {
+      a.classList.add('active');
+    }
   });
 
-  initSeismoStrip();
-});
-
-/* ---------- Sismogram şeridi (imza öge) ---------- */
-function initSeismoStrip(magnitudes) {
-  const el = document.getElementById('seismoSvg');
-  if (!el) return;
-
-  const W = 1200, H = 56, MID = H / 2;
-  const points = magnitudes && magnitudes.length ? magnitudes.slice(0, 40).reverse() : null;
-
-  let path = '';
-  let hasAlert = false;
-  const step = W / 60;
-
-  for (let i = 0; i <= 60; i++) {
-    let amp;
-    if (points && points[i % points.length] !== undefined) {
-      const m = points[i % points.length];
-      amp = Math.min(m, 6) * 3.2;
-      if (m >= 4.5) hasAlert = true;
-    } else {
-      amp = Math.sin(i * 0.7) * 3 + Math.random() * 2;
-    }
-    const jitter = (Math.random() - 0.5) * 2;
-    const y = MID + (i % 7 === 0 ? amp + jitter : jitter * 1.5);
-    path += `${i === 0 ? 'M' : 'L'} ${(i * step).toFixed(1)} ${y.toFixed(1)} `;
+  // Filtre alt sayfası (bottom sheet)
+  const overlay = document.getElementById('sheetOverlay');
+  const openBtn = document.getElementById('navFilterBtn');
+  const closeTargets = document.querySelectorAll('[data-close-sheet]');
+  if (openBtn && overlay) {
+    openBtn.addEventListener('click', () => { overlay.hidden = false; });
+  }
+  closeTargets.forEach(el => el.addEventListener('click', () => { if (overlay) overlay.hidden = true; }));
+  if (overlay) {
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
   }
 
-  el.innerHTML = `
-    <line x1="0" y1="${MID}" x2="${W}" y2="${MID}" class="grid-line" stroke-dasharray="2 4"/>
-    <path d="${path}" class="trace ${hasAlert ? 'alert' : ''}" />
-  `;
-}
+  // Yenile butonu -> sayfayı görsel olarak spin ettirip veri tazeler
+  const refreshBtn = document.getElementById('navRefreshBtn');
+  if (refreshBtn && typeof window.onRefreshClick === 'function') {
+    refreshBtn.addEventListener('click', () => {
+      refreshBtn.classList.add('spinning');
+      Promise.resolve(window.onRefreshClick()).finally(() => {
+        setTimeout(() => refreshBtn.classList.remove('spinning'), 500);
+      });
+    });
+  }
+
+  document.getElementById('year') && (document.getElementById('year').textContent = new Date().getFullYear());
+});
 
 </script>
 <script>
@@ -685,14 +634,11 @@ async function loadStats() {
   }
   if (!list.length) return;
 
-  initSeismoStrip(list.map(e => e.mag));
-
   document.getElementById('kpiTotal').textContent = list.length;
   document.getElementById('kpiAvgMag').textContent = (list.reduce((s, e) => s + e.mag, 0) / list.length).toFixed(2);
   document.getElementById('kpiMaxMag').textContent = Math.max(...list.map(e => e.mag)).toFixed(1);
   document.getElementById('kpiAvgDepth').textContent = (list.reduce((s, e) => s + (e.depth || 0), 0) / list.length).toFixed(1);
 
-  // Büyüklük dağılımı
   const buckets = { '0–2.9': 0, '3–3.9': 0, '4–4.9': 0, '5+': 0 };
   list.forEach(e => {
     if (e.mag < 3) buckets['0–2.9']++;
@@ -700,41 +646,42 @@ async function loadStats() {
     else if (e.mag < 5) buckets['4–4.9']++;
     else buckets['5+']++;
   });
-  new Chart(document.getElementById('magChart'), {
+
+  if (window.magChartInstance) window.magChartInstance.destroy();
+  window.magChartInstance = new Chart(document.getElementById('magChart'), {
     type: 'bar',
     data: {
       labels: Object.keys(buckets),
       datasets: [{
         data: Object.values(buckets),
-        backgroundColor: ['#3ECF8E', '#FFB13B', '#FF8A3D', '#FF4433'],
+        backgroundColor: ['#1fa34a', '#f5a524', '#f08a3d', '#e0473f'],
         borderRadius: 6, borderSkipped: false,
       }]
     },
     options: {
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#8D97A5' }, grid: { display: false } },
-        y: { ticks: { color: '#8D97A5', stepSize: 1 }, grid: { color: '#232B36' }, beginAtZero: true }
+        x: { ticks: { color: '#6b7680' }, grid: { display: false } },
+        y: { ticks: { color: '#6b7680', stepSize: 1 }, grid: { color: '#e2e6e4' }, beginAtZero: true }
       }
     }
   });
 
-  // Kaynak dağılımı
   const afadCount = list.filter(e => e.provider === 'afad').length;
   const kandilliCount = list.filter(e => e.provider === 'kandilli').length;
-  new Chart(document.getElementById('providerChart'), {
+  if (window.providerChartInstance) window.providerChartInstance.destroy();
+  window.providerChartInstance = new Chart(document.getElementById('providerChart'), {
     type: 'doughnut',
     data: {
       labels: ['AFAD', 'Kandilli'],
-      datasets: [{ data: [afadCount, kandilliCount], backgroundColor: ['#4FA3FF', '#C792FF'], borderWidth: 0 }]
+      datasets: [{ data: [afadCount, kandilliCount], backgroundColor: ['#3f7fd1', '#e0473f'], borderWidth: 0 }]
     },
     options: {
-      plugins: { legend: { position: 'bottom', labels: { color: '#EDEFF2' } } },
+      plugins: { legend: { position: 'bottom', labels: { color: '#14181a' } } },
       cutout: '68%'
     }
   });
 
-  // İl bazında tablo
   const cityCounts = {};
   list.forEach(e => {
     const city = e.location_properties?.closestCity?.name;
@@ -754,8 +701,8 @@ async function loadStats() {
       </tr>`).join('');
   }
 }
+window.onRefreshClick = loadStats;
 
-document.getElementById('year').textContent = new Date().getFullYear();
 loadStats();
 </script>
 </body>
