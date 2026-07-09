@@ -650,11 +650,7 @@ const API_BASE = 'https://api.orhanaydogdu.com.tr/deprem';
 
 async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } = {}) {
   async function fetchOne(prov) {
-    // 'all' için AFAD+Kandilli'yi TEK istekte birleştiren resmi endpoint kullanılır.
-    // Bu, rate limit'e (dakikada 40 istek) takılma riskini yarıya indirir.
-    const url = prov === 'all'
-      ? `${API_BASE}?limit=${limit}&skip=${skip}`
-      : `${API_BASE}/${prov}/live?limit=${limit}&skip=${skip}`;
+    const url = `${API_BASE}/${prov}/live?limit=${limit}&skip=${skip}`;
     const res = await fetch(url);
     if (!res.ok) {
       if (res.status === 429 || res.status === 403) {
@@ -665,6 +661,17 @@ async function fetchLiveEarthquakes({ provider = 'all', limit = 60, skip = 0 } =
     const data = await res.json();
     if (!data || data.status !== true) throw new Error('API_INVALID_RESPONSE');
     return data.result || [];
+  }
+
+  if (provider === 'all') {
+    // Bu API'de AFAD+Kandilli'yi tek istekte birleştiren bir endpoint YOK.
+    // Bu yuzden iki kaynak paralel olarak ayri ayri cekilip birlestirilir.
+    const results = await Promise.allSettled([fetchOne('kandilli'), fetchOne('afad')]);
+    const ok = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+    if (ok.length === 0) {
+      throw results[0].reason;
+    }
+    return ok.flat();
   }
 
   return fetchOne(provider);
