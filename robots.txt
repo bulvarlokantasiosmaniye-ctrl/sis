@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ornek-alan-adiniz.com/sitemap.xml
